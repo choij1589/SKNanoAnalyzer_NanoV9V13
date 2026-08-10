@@ -4,7 +4,7 @@ export MAMBA_ROOT_PREFIX="/opt/conda"
 eval "$(micromamba shell hook -s bash)"
 micromamba activate Nano
 
-cd [WORKDIR]
-hadd -f -j 8 [TARGET] output/hists_*.root
+cd [WORKDIR] || exit 1
+hadd -f -j 8 [TARGET] output/hists_*.root || exit 1
 rm output/hists_*.root
-exit $?
+exit 0
