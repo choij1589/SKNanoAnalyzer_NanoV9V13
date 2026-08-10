@@ -1045,12 +1045,19 @@ class PromptAnalyzer(TriLeptonBase):
             if nJets >= 2 and nBJets >= 1:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/os_mumu/mu_charge_sum",
                               chargeSum, weight, 7, -3.5, 3.5)
+                if chargeSum == 0:
+                    self.FillHist("SR1E2Mu/Central/NMinusOne/os_mumu/pair/mass",
+                                  pair.M(), weight, 200, 0., 200.)
             if chargeSum == 0 and nBJets >= 1:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/njet_ge2/n_jets",
                               nJets, weight, 20, 0., 20.)
+                self.FillHist("SR1E2Mu/Central/NMinusOne/njet_ge2/pair/mass",
+                              pair.M(), weight, 200, 0., 200.)
             if chargeSum == 0 and nJets >= 2:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/nbjet_ge1/n_bjets",
                               nBJets, weight, 15, 0., 15.)
+                self.FillHist("SR1E2Mu/Central/NMinusOne/nbjet_ge1/pair/mass",
+                              pair.M(), weight, 200, 0., 200.)
 
         if self.Run3Mu:
             if not (tightMuons.size() == 3 and vetoMuons.size() == 3 and
@@ -1065,32 +1072,48 @@ class PromptAnalyzer(TriLeptonBase):
             if not (mu1.Pt() > 20. and mu2.Pt() > 10. and mu3.Pt() > 10.):
                 return
 
-            osPairMasses = []
+            osPairs = []
             for idx, mu_a in enumerate([mu1, mu2, mu3]):
                 for mu_b in [mu1, mu2, mu3][idx + 1:]:
                     if mu_a.Charge() + mu_b.Charge() == 0:
-                        osPairMasses.append((mu_a + mu_b).M())
-            if len(osPairMasses) == 0 or not all(mass > 12. for mass in osPairMasses):
+                        osPairs.append(mu_a + mu_b)
+            if not all(pair.M() > 12. for pair in osPairs):
                 return
 
             weight = self.getTotalWeight(self.getWeights(ev, recoObjects, genJets, "Central"))
-            absChargeSum = abs(mu1.Charge() + mu2.Charge() + mu3.Charge())
+            chargeSum = mu1.Charge() + mu2.Charge() + mu3.Charge()
             nJets = jets.size()
             nBJets = bjets.size()
 
             if nJets >= 2 and nBJets >= 1:
-                self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/abs_charge_sum",
-                              absChargeSum, weight, 5, -0.5, 4.5)
+                self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/charge_sum",
+                              chargeSum, weight, 7, -3.5, 3.5)
+                if len(osPairs) >= 2:
+                    pair_lowM, pair_highM = sorted(osPairs, key=lambda pair: pair.M())[:2]
+                    self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/pair_lowM/mass",
+                                  pair_lowM.M(), weight, 200, 0., 200.)
+                    self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/pair_highM/mass",
+                                  pair_highM.M(), weight, 200, 0., 200.)
 
-            if not absChargeSum == 1:
+            if not abs(chargeSum) == 1:
                 return
+
+            pair_lowM, pair_highM = sorted(osPairs, key=lambda pair: pair.M())[:2]
 
             if nBJets >= 1:
                 self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/n_jets",
                               nJets, weight, 20, 0., 20.)
+                self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/pair_lowM/mass",
+                              pair_lowM.M(), weight, 200, 0., 200.)
+                self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/pair_highM/mass",
+                              pair_highM.M(), weight, 200, 0., 200.)
             if nJets >= 2:
                 self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/n_bjets",
                               nBJets, weight, 15, 0., 15.)
+                self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/pair_lowM/mass",
+                              pair_lowM.M(), weight, 200, 0., 200.)
+                self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/pair_highM/mass",
+                              pair_highM.M(), weight, 200, 0., 200.)
 
     def fillObjects(self, channel: str,
                           recoObjects: dict,

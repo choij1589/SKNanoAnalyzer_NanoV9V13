@@ -867,12 +867,19 @@ class MatrixAnalyzer(TriLeptonBase):
             if nJets >= 2 and nBJets >= 1:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/os_mumu/mu_charge_sum",
                               chargeSum, weight, 7, -3.5, 3.5)
+                if chargeSum == 0:
+                    self.FillHist("SR1E2Mu/Central/NMinusOne/os_mumu/pair/mass",
+                                  pair.M(), weight, 200, 0., 200.)
             if chargeSum == 0 and nBJets >= 1:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/njet_ge2/n_jets",
                               nJets, weight, 20, 0., 20.)
+                self.FillHist("SR1E2Mu/Central/NMinusOne/njet_ge2/pair/mass",
+                              pair.M(), weight, 200, 0., 200.)
             if chargeSum == 0 and nJets >= 2:
                 self.FillHist("SR1E2Mu/Central/NMinusOne/nbjet_ge1/n_bjets",
                               nBJets, weight, 15, 0., 15.)
+                self.FillHist("SR1E2Mu/Central/NMinusOne/nbjet_ge1/pair/mass",
+                              pair.M(), weight, 200, 0., 200.)
 
         if self.Run3Mu:
             if not (looseMuons.size() == 3 and vetoMuons.size() == 3 and
@@ -889,32 +896,48 @@ class MatrixAnalyzer(TriLeptonBase):
 
             scaledMuons = self.GetPTCorrScaledMuons(looseMuons)
             mu1, mu2, mu3 = tuple(scaledMuons)
-            osPairMasses = []
+            osPairs = []
             for idx, mu_a in enumerate([mu1, mu2, mu3]):
                 for mu_b in [mu1, mu2, mu3][idx + 1:]:
                     if mu_a.Charge() + mu_b.Charge() == 0:
-                        osPairMasses.append((mu_a + mu_b).M())
-            if len(osPairMasses) == 0 or not all(mass > 12. for mass in osPairMasses):
+                        osPairs.append(mu_a + mu_b)
+            if not all(pair.M() > 12. for pair in osPairs):
                 return
 
             weight = self.GetFakeWeight(scaledMuons, looseElectrons, "Central")
-            absChargeSum = abs(mu1.Charge() + mu2.Charge() + mu3.Charge())
+            chargeSum = mu1.Charge() + mu2.Charge() + mu3.Charge()
             nJets = jets.size()
             nBJets = bjets.size()
 
             if nJets >= 2 and nBJets >= 1:
-                self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/abs_charge_sum",
-                              absChargeSum, weight, 5, -0.5, 4.5)
+                self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/charge_sum",
+                              chargeSum, weight, 7, -3.5, 3.5)
+                if len(osPairs) >= 2:
+                    pair_lowM, pair_highM = sorted(osPairs, key=lambda pair: pair.M())[:2]
+                    self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/pair_lowM/mass",
+                                  pair_lowM.M(), weight, 200, 0., 200.)
+                    self.FillHist("SR3Mu/Central/NMinusOne/charge_abs1/pair_highM/mass",
+                                  pair_highM.M(), weight, 200, 0., 200.)
 
-            if not absChargeSum == 1:
+            if not abs(chargeSum) == 1:
                 return
+
+            pair_lowM, pair_highM = sorted(osPairs, key=lambda pair: pair.M())[:2]
 
             if nBJets >= 1:
                 self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/n_jets",
                               nJets, weight, 20, 0., 20.)
+                self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/pair_lowM/mass",
+                              pair_lowM.M(), weight, 200, 0., 200.)
+                self.FillHist("SR3Mu/Central/NMinusOne/njet_ge2/pair_highM/mass",
+                              pair_highM.M(), weight, 200, 0., 200.)
             if nJets >= 2:
                 self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/n_bjets",
                               nBJets, weight, 15, 0., 15.)
+                self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/pair_lowM/mass",
+                              pair_lowM.M(), weight, 200, 0., 200.)
+                self.FillHist("SR3Mu/Central/NMinusOne/nbjet_ge1/pair_highM/mass",
+                              pair_highM.M(), weight, 200, 0., 200.)
 
     def fillObjects(self, channel: str,
                           recoObjects: dict,
@@ -1044,7 +1067,7 @@ class MatrixAnalyzer(TriLeptonBase):
             self.FillHist(f"{channel}/{syst}/dR_min_ele_mu", min([dR_ele_mu1, dR_ele_mu2]), weight, 100, 0., 10.)
 
             # Within Z mass window?
-            if 60 < pair.M() and pair.M() < 120:
+            if 85 < pair.M() and pair.M() < 95:
                 self.FillHist(f"{channel}/{syst}/pair_onZ/mass", pair.M(), weight, 60, 60., 120.)
             else:
                 self.FillHist(f"{channel}/{syst}/pair_offZ/mass", pair.M(), weight, 200, 0., 200.)
@@ -1084,7 +1107,7 @@ class MatrixAnalyzer(TriLeptonBase):
             self.FillHist(f"{channel}/{syst}/dR_pair_ss2_os", dR_pair_ss2_os, weight, 100, 0., 10.)
             self.FillHist(f"{channel}/{syst}/dR_pair_ss1_ss2", dR_pair_ss1_ss2, weight, 100, 0., 10.)
 
-            if (60 < pair_lowM.M() and pair_lowM.M() < 120) or (60 < pair_highM.M() and pair_highM.M() < 120):
+            if (85 < pair_lowM.M() and pair_lowM.M() < 95) or (85 < pair_highM.M() and pair_highM.M() < 95):
                 self.FillHist(f"{channel}/{syst}/pair_lowM_onZ/mass", pair_lowM.M(), weight, 200, 0., 200.)
                 self.FillHist(f"{channel}/{syst}/pair_highM_onZ/mass", pair_highM.M(), weight, 200, 0., 200.)
             else:
