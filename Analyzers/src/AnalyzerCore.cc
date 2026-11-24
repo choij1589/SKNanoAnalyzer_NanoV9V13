@@ -1,16 +1,6 @@
 #include "AnalyzerCore.h"
 
-AnalyzerCore::AnalyzerCore() {
-    myCorr = nullptr;
-    outfile = nullptr;
-    if(HasFlag("useTH1F")) {
-        cout << "[AnalyzerCore::AnalyzerCore] Using TH1F" << endl;
-        useTH1F = true;
-    }
-    else {
-        cout << "[AnalyzerCore::AnalyzerCore] Using TH1D" << endl;
-        useTH1F = false;
-    }
+AnalyzerCore::AnalyzerCore() : useTH1F(true), myCorr(nullptr), outfile(nullptr) {
     // pdfReweight = new PDFReweight();
 }
 
@@ -97,6 +87,10 @@ float AnalyzerCore::GetPSWeight(const MyCorrection::variation &ISR_syst, const M
         cout << "[AnalyzerCore::GetPSWeight] ISR_syst = " << int(ISR_syst) << " and FSR_syst = " << int(FSR_syst) << " is not implemented" << endl;
         exit(ENODATA);
     }
+}
+
+bool AnalyzerCore::HasTheoryWeights() const {
+    return !IsDATA && nLHEPdfWeight > 0 && nLHEScaleWeight > 0 && nPSWeight > 1;
 }
 
 float AnalyzerCore::GetHT(const RVec<Jet> &jets){
@@ -361,15 +355,17 @@ Particle AnalyzerCore::ApplyTypeICorrection(const Particle& MET,
     // Sum of old corrected jets passing acceptance (pT > 15 GeV) - these were used in NanoAOD Type-I
     TLorentzVector sumOldCorrJets;
     for (const auto& jet : jets) {
+        // Skip jets with invalid pT (can occur in Run3 with JEC systematics)
+        if (jet.Pt() <= 0.0f) {
+            continue;
+        }
+
         if (jet.GetOriginalPt() > 15.0 && fabs(jet.Eta()) < 5.0) {
             TLorentzVector oldCorrJet;
             // Original mass: Jet_mass[i] from NanoAOD (before our re-correction)
-            float originalMass = jet.M();
-            if (jet.Pt() > 0.0f) {
-                // Reconstruct original mass: since both pt and mass scale by JESSF,
-                // originalMass = currentMass * (originalPt / currentPt)
-                originalMass = jet.M() * (jet.GetOriginalPt() / jet.Pt());
-            }
+            // Reconstruct original mass: since both pt and mass scale by JESSF,
+            // originalMass = currentMass * (originalPt / currentPt)
+            float originalMass = jet.M() * (jet.GetOriginalPt() / jet.Pt());
             oldCorrJet.SetPtEtaPhiM(jet.GetOriginalPt(), jet.Eta(), jet.Phi(), originalMass);
             sumOldCorrJets += oldCorrJet;
         }
@@ -382,6 +378,7 @@ Particle AnalyzerCore::ApplyTypeICorrection(const Particle& MET,
             sumCorrJets += jet;
         }
     }
+
     metVector -= (sumCorrJets - sumOldCorrJets);
 
     // Sum of raw muons passing acceptance (pT > 5 GeV, |eta| < 2.4)
@@ -466,9 +463,9 @@ float AnalyzerCore::MCweight(bool usesign, bool norm_1invpb) const {
     if (norm_1invpb)
     {
         if (usesign)
-        weight *= xsec / sumSign;
+        weight *= xsec * filterEff / sumSign;
         else
-        weight *= xsec / sumW;
+        weight *= xsec * filterEff / sumW;
     }
     return weight;
 
@@ -485,8 +482,25 @@ Event AnalyzerCore::GetEvent() {
     ev.SetGenMET(GenMET_pt, GenMET_phi);
     ev.SetMETVector(MET_pt, MET_phi, Event::MET_Type::CHS);
     ev.SetMETVector(PuppiMET_pt, PuppiMET_phi, Event::MET_Type::PUPPI);
-    ev.SetMETVector(PuppiMET_ptUnclusteredUp, PuppiMET_phiUnclusteredUp, Event::MET_Type::PUPPI, Event::MET_Syst::UE_UP);
-    ev.SetMETVector(PuppiMET_ptUnclusteredDown, PuppiMET_phiUnclusteredDown, Event::MET_Type::PUPPI, Event::MET_Syst::UE_DOWN);
+
+    // Handle NaN in UE systematic MET branches (rare events in some Run3 samples)
+    // Use central PUPPI MET as fallback when systematic branches contain NaN
+    float ue_up_pt = PuppiMET_ptUnclusteredUp;
+    float ue_up_phi = PuppiMET_phiUnclusteredUp;
+    float ue_down_pt = PuppiMET_ptUnclusteredDown;
+    float ue_down_phi = PuppiMET_phiUnclusteredDown;
+
+    if (std::isnan(ue_up_pt) || std::isnan(ue_up_phi)) {
+        ue_up_pt = PuppiMET_pt;
+        ue_up_phi = PuppiMET_phi;
+    }
+    if (std::isnan(ue_down_pt) || std::isnan(ue_down_phi)) {
+        ue_down_pt = PuppiMET_pt;
+        ue_down_phi = PuppiMET_phi;
+    }
+
+    ev.SetMETVector(ue_up_pt, ue_up_phi, Event::MET_Type::PUPPI, Event::MET_Syst::UE_UP);
+    ev.SetMETVector(ue_down_pt, ue_down_phi, Event::MET_Type::PUPPI, Event::MET_Syst::UE_DOWN);
     ev.SetTrigger(TriggerMap);
     ev.SetEra(GetEra());
     ev.setRho(fixedGridRhoFastjetAll);
@@ -652,6 +666,7 @@ RVec<Electron> AnalyzerCore::GetAllElectrons(){
         electron.SetPtEtaPhiM(Electron_pt[i], Electron_eta[i], Electron_phi[i], Electron_mass[i]);
         electron.SetCharge(Electron_charge[i]);
         electron.SetScEta(Electron_scEta[i]);
+        electron.SetScPhi(Electron_scPhi[i]);
         electron.SetDeltaEtaInSC(Electron_deltaEtaInSC[i]);
         electron.SetDeltaEtaInSeed(Electron_deltaEtaInSeed[i]);
         electron.SetDeltaPhiInSC(Electron_deltaPhiInSC[i]);
@@ -924,16 +939,18 @@ RVec<Jet> AnalyzerCore::GetAllJets() {
         const float correctedPt = rawPt * JESSF;
         const float correctedMass = rawMass * JESSF;
         jet.SetPtEtaPhiM(correctedPt, Jet_eta[i], Jet_phi[i], correctedMass);
+        jet.SetCharge(0); // Jets have no charge information in NanoAOD
         jet.SetRawPt(rawPt);
         jet.SetOriginalPt(Jet_pt[i]);
         jet.SetArea(Jet_area[i]);
         jet.SetOriginalIndex(i);
         jet.SetEnergyFractions(Jet_chHEF[i], Jet_neHEF[i], Jet_neEmEF[i], Jet_chEmEF[i], Jet_muEF[i]);
         if(!IsDATA){
-            if(Run == 3)
-            jet.SetJetFlavours(Jet_partonFlavour[i] ,Jet_hadronFlavour[i]);
-            else if(Run == 2)
-            jet.SetJetFlavours(static_cast<short>(Jet_partonFlavour_RunII[i]) , static_cast<unsigned char>(Jet_hadronFlavour_RunII[i]));
+            if (Run == 3) {
+              jet.SetJetFlavours(Jet_partonFlavour[i] ,Jet_hadronFlavour[i]);
+            } else { // Run 2
+              jet.SetJetFlavours(static_cast<short>(Jet_partonFlavour_RunII[i]) , static_cast<unsigned char>(Jet_hadronFlavour_RunII[i]));
+            }
         }
         RVec<float> tvs;
         RVec<float> tvs2;
@@ -1144,18 +1161,29 @@ RVec<Jet> AnalyzerCore::JetsVetoLeptonInside(const RVec<Jet> &jets, const RVec<E
 // For Run2, reject jets within the veto map
 bool AnalyzerCore::PassVetoMap(const Jet &jet, const RVec<Muon> &AllMuons, const TString mapCategory){
     if (! (Run == 2)) return true;
+
     // Only apply to the jets with em energy fraction less than 0.9
     if (jet.chEmEF() + jet.neEmEF() > 0.9) return true;
+    // Not overlapping with muons within dR < 0.2
+    for (const auto &muon: AllMuons) {
+        if (jet.DeltaR(muon) < 0.2) return true;
+    }
+
+    // Other selections are already applied
+    const bool overlap_veto_map = myCorr->IsJetVetoZone(jet.Eta(), jet.Phi(), mapCategory);
+    return !overlap_veto_map;
+
 
     // Selections should be looser than Analysis jet selections
-    bool pass_loose_selection = jet.Pt() > 15.;
-    pass_loose_selection = pass_loose_selection && jet.PassID(Jet::JetID::TIGHT);
-    pass_loose_selection = pass_loose_selection && (jet.Pt() > 50. || jet.PassID(Jet::JetID::PUID_LOOSE));
-    for (const auto &muon: AllMuons){
-        pass_loose_selection = pass_loose_selection && (jet.DeltaR(muon) > 0.2);
-    }
-    bool pass_veto_map = pass_loose_selection && (!myCorr->IsJetVetoZone(jet.Eta(), jet.Phi(), mapCategory));
-    return pass_veto_map;
+    //bool pass_loose_selection = jet.Pt() > 15.;
+    //pass_loose_selection = pass_loose_selection && jet.PassID(Jet::JetID::TIGHT);
+    //pass_loose_selection = pass_loose_selection && (jet.Pt() > 50. || jet.PassID(Jet::JetID::PUID_LOOSE));
+    // This selection is tighter than veto map lepton veto dR=0.4
+    //for (const auto &muon: AllMuons){
+    //    pass_loose_selection = pass_loose_selection && (jet.DeltaR(muon) > 0.2);
+    //}
+    //bool pass_veto_map = pass_loose_selection && (!myCorr->IsJetVetoZone(jet.Eta(), jet.Phi(), mapCategory));
+    //return pass_veto_map;
 }
 
 // For Run3, reject events if any jet is within the veto map
@@ -1328,8 +1356,8 @@ RVec<TrigObj> AnalyzerCore::GetAllTrigObjs() {
 bool AnalyzerCore::IsHEMElectron(const Electron& electron) const {
     if (DataYear != 2018) return false;
 
-    if (electron.Eta() < -1.25){
-        if((electron.Phi() < -0.82) && (electron.Phi() > -1.62)) return true;
+    if (electron.scEta() < -1.3){
+        if((electron.scPhi() < -0.87) && (electron.scPhi() > -1.57)) return true;
     }
     return false;
 }
@@ -1345,9 +1373,13 @@ void AnalyzerCore::PrintGen(const RVec<Gen> &gens) {
         cout << i << "\t" 
              << gen.PID() << "\t" 
              << gen.Status() << "\t" 
-             << gen.MotherIndex() << "\t" 
-             << gens.at(gen.MotherIndex()).PID() << "\t" 
-             << history[0] << "\t" 
+             << gen.MotherIndex() << "\t";
+        if (gen.MotherIndex() >= 0 && gen.MotherIndex() < (int)gens.size()) {
+            cout << gens.at(gen.MotherIndex()).PID();
+        } else {
+            cout << "N/A";
+        }
+        cout << "\t" << history[0] << "\t" 
              << fixed << setprecision(2) 
              << gen.Pt() << "\t" 
              << gen.Eta() << "\t" 
@@ -1360,6 +1392,7 @@ RVec<int> AnalyzerCore::TrackGenSelfHistory(const Gen &me, const RVec<Gen> &gens
     //returns {index of the first history of the gen, 
     //         index of the last history of the gen's mother}
     int myindex = me.Index();
+    if (myindex < 0 || myindex >= (int)gens.size()) return {myindex, -1};  // Bounds check
     if (myindex < 2) return {myindex, -1};
 
     int mypid = gens.at(myindex).PID();
@@ -1367,7 +1400,7 @@ RVec<int> AnalyzerCore::TrackGenSelfHistory(const Gen &me, const RVec<Gen> &gens
     int motherindex = me.MotherIndex();
     if (motherindex < 0) return {myindex, -1};
     
-    while(gens.at(motherindex).PID() == mypid){
+    while(motherindex >= 0 && motherindex < (int)gens.size() && gens.at(motherindex).PID() == mypid){
         // Go one generation up
         currentidx = motherindex;
         motherindex = gens.at(motherindex).MotherIndex();
@@ -1487,6 +1520,7 @@ bool AnalyzerCore::IsFinalPhotonSt23_Public(const RVec<Gen>& gens){
         const Gen &gen = gens.at(i);
         int fpid  = fabs(gen.PID());
         int GenSt = gen.Status();
+        if (gen.MotherIndex() < 0 || gen.MotherIndex() >= (int)gens.size()) continue;
         int MPID_direct= gens.at(gen.MotherIndex()).PID();
         if( !((fpid!=22 && MPID_direct==22) || (fpid==22 && (GenSt==23||GenSt==1))) ) continue;
 
@@ -1528,6 +1562,8 @@ bool AnalyzerCore::IsFromHadron(const Gen& me, const RVec<Gen>& gens) {
     if(myindex<2) return true;
     RVec<int> my_history = TrackGenSelfHistory(me, gens);
     if (my_history[1] < 0) return true;
+    if (my_history[0] < 0 || my_history[0] >= (int)gens.size() ||
+        my_history[1] < 0 || my_history[1] >= (int)gens.size()) return true;
     Gen          Start = gens.at( my_history[0] );
     Gen MotherOf_Start = gens.at( my_history[1] );
 
@@ -1545,12 +1581,20 @@ bool AnalyzerCore::IsFromHadron(const Gen& me, const RVec<Gen>& gens) {
             break;
         }
         //==== Go one generation up
+        if (current_history[1] < 0 || current_history[1] >= (int)gens.size()) {
+            out = true;
+            break;
+        }
         current_me = gens.at(current_history[1]);
 
        //==== Now look at mother of previous "me"
         current_mother = gens.at(current_history[1]);
 
         RVec<int> current_mother_history = TrackGenSelfHistory(current_mother, gens);
+        if (current_mother_history[0] < 0 || current_mother_history[0] >= (int)gens.size()) {
+            out = true;
+            break;
+        }
         Gen StartOf_current_mother = gens.at(current_mother_history[0]);
         int current_mother_PID = current_mother.PID();
 
@@ -1664,6 +1708,7 @@ int AnalyzerCore::GetLeptonType_Public(const int& genIdx, const RVec<Gen>& gens)
     //Note: There is no physical distinction between type 4 vs. 5 and type -5 vs. -6. The distinction is only intended for straightforward debugging.
 
     //Only consider Status 1 lepton
+    if (genIdx < 0 || genIdx >= (int)gens.size()) return 0;  // Bounds check first
     if (genIdx<2) return 0;
     if (gens.at(genIdx).Status()!=1) return 0;
     if( !(fabs(gens.at(genIdx).PID())==11 || fabs(gens.at(genIdx).PID())==13) ) return 0;
@@ -1744,6 +1789,8 @@ int AnalyzerCore::GetGenPhotonType(const Gen& genph, const RVec<Gen>& gens) {
     }//From this pt, only St1 Photon is treated.
 
     RVec<int> phhist = TrackGenSelfHistory(genph, gens);
+    if (phhist[0] < 0 || phhist[0] >= (int)gens.size() || 
+        phhist[1] < 0 || phhist[1] >= (int)gens.size()) return 0;
     const Gen&          Start = gens.at(phhist[0]);
     const Gen& MotherOf_Start = gens.at(phhist[1]);
     const int& MotherOf_Start_PID = abs(MotherOf_Start.PID()); // |PID|
@@ -1904,6 +1951,25 @@ void AnalyzerCore::FillHist(const TString &histname, float value_x, float value_
         it->second->Fill(value_x, value_y, value_z, weight);
     }
 }
+
+void AnalyzerCore::FillJetEtaPhi2D(const RVec<Jet>& jets, float weight, const TString& stage) {
+    for (const auto& jet : jets) {
+        FillHist(Form("JetEtaPhi/%s/eta_phi", stage.Data()),
+                 jet.Eta(), jet.Phi(), weight,
+                 100, -5.0, 5.0,   // eta: 100 bins from -5 to 5
+                 64, -3.2, 3.2);   // phi: 64 bins from -pi to pi
+    }
+}
+
+void AnalyzerCore::FillElectronScEtaPhi2D(const RVec<Electron>& electrons, float weight, const TString& stage) {
+    for (const auto& ele : electrons) {
+        FillHist(Form("ElectronScEtaPhi/%s/scEta_scPhi", stage.Data()),
+                 ele.scEta(), ele.scPhi(), weight,
+                 100, -2.5, 2.5,   // scEta: 100 bins from -2.5 to 2.5
+                 64, -3.2, 3.2);   // scPhi: 64 bins from -pi to pi
+    }
+}
+
 TTree* AnalyzerCore::NewTree(const TString &treename, const RVec<TString> &keeps, const RVec<TString> &drops){
     auto treekey = string(treename);
     auto it = treemap.find(treekey);

@@ -176,7 +176,7 @@ def setParser():
     parser.add_argument('-r', dest='Run', default="None",help="Run2, Run3. can be comma separated. override era option")
     parser.add_argument('-p', dest='Period', default="All",help="Data period (e.g. A, B, C, etc.) for data samples. Default: All")
     parser.add_argument('--userflags', dest='Userflags', default="")
-    parser.add_argument('--nmax', dest='NMax', default=500, type=int, help="maximum running jobs")
+    parser.add_argument('--nmax', dest='NMax', default=-1, type=int, help="maximum running jobs")
     parser.add_argument('--reduction', dest='Reduction', default=1, type=float)
     parser.add_argument('--python', action="store_true", default=False,
     help="Use python analyzer")
@@ -252,12 +252,12 @@ def jobProducer(era, sample, argparse, masterJobDirectory, userflags, isample, t
     reduction = argparse.Reduction
     
     if sample.startswith("Skim_"):
-        SkimInfo = skimInfoJsons[era][sample if isMC else re.sub(f"_{re.escape(period)}$", "", sample)]
+        SkimInfo = skimInfoJsons[era][sample if isMC else re.sub(f"_{period}$", "", sample)]
         sampleInfo = sampleInfoJsons[era][SkimInfo['PD']]
         samplePaths = json.load(open(os.path.join(SKNANO_DATA,era,'Sample','Skim',sample+'.json')))['path']
         sample = SkimInfo['PD']
     else:
-        sampleInfo = sampleInfoJsons[era][sample if isMC else re.sub(f"_{re.escape(period)}$", "", sample)]
+        sampleInfo = sampleInfoJsons[era][sample if isMC else re.sub(f"_{period}$", "", sample)]
         samplePaths = json.load(open(os.path.join(SKNANO_DATA,era,'Sample','ForSNU',sample+'.json')))['path']
         
     samplePaths = jobFileDivider(samplePaths, njobs)
@@ -283,6 +283,7 @@ def jobProducer(era, sample, argparse, masterJobDirectory, userflags, isample, t
                 job_content = job_content.replace("[xsec]", str(sampleInfo["xsec"]))
                 job_content = job_content.replace("[sumW]", str(sampleInfo["sumW"]))
                 job_content = job_content.replace("[sumSign]", str(sampleInfo["sumsign"]))
+                job_content = job_content.replace("[filterEff]", str(sampleInfo.get("filterEff", 1.)))
             else:
                 job_content = job_content.replace("module.IsDATA = False", "module.IsDATA = True")
                 job_content = job_content.replace('module.MCSample = "[sample]"',
@@ -290,6 +291,7 @@ def jobProducer(era, sample, argparse, masterJobDirectory, userflags, isample, t
                 job_content = job_content.replace("    module.xsec = [xsec]\n", "")
                 job_content = job_content.replace("    module.sumW = [sumW]\n", "")
                 job_content = job_content.replace("    module.sumSign = [sumSign]\n", "")
+                job_content = job_content.replace("    module.filterEff = [filterEff]\n", "")
             
             # Handle userflags
             if userflags:
@@ -329,6 +331,7 @@ def jobProducer(era, sample, argparse, masterJobDirectory, userflags, isample, t
                 job_content = job_content.replace("[xsec]", str(sampleInfo["xsec"]))
                 job_content = job_content.replace("[sumW]", str(sampleInfo["sumW"]))
                 job_content = job_content.replace("[sumSign]", str(sampleInfo["sumsign"]))
+                job_content = job_content.replace("[filterEff]", str(sampleInfo.get("filterEff", 1.)))
             else:
                 # For data, remove MC-specific lines
                 job_content = job_content.replace("module.IsDATA = false;", "module.IsDATA = true;")
@@ -336,6 +339,7 @@ def jobProducer(era, sample, argparse, masterJobDirectory, userflags, isample, t
                 job_content = job_content.replace("module.xsec = [xsec];", "")
                 job_content = job_content.replace("module.sumW = [sumW];", "") 
                 job_content = job_content.replace("module.sumSign = [sumSign];", "")
+                job_content = job_content.replace("module.filterEff = [filterEff];", "")
 
             # Handle userflags
             if userflags:
@@ -415,7 +419,8 @@ def makeMainAnalyzerJobs(working_dir,abs_MasterDirectoryName,totalNumberOfJobs, 
     job_dict['RequestCpus'] = ncpu
     job_dict['output'] = os.path.join(working_dir,"job_$(Process).out")
     job_dict['error'] = os.path.join(working_dir,"job_$(Process).err")
-    job_dict['concurrency_limits'] = f"n{nmax}.{username}"
+    #job_dict['concurrency_limits'] = f"n{600}.{username}"
+    job_dict['concurrency_limits'] = ""
     
     return job_dict
 
@@ -605,20 +610,8 @@ if __name__ == '__main__':
     eras = getEraList(args.Era, args.Run)
     SKIMMING_MODE = args.skimming_mode
     if args.Analyzer.startswith("Skim_") and not SKIMMING_MODE:
-        print('\033[93m'+'''It seems like you want to skim the samples. If so, you need to enable skimming mode by passing the 
---skimming_mode arguments to write the output file to gv0 and generate the *.json file of the skimmed sample.\n'''+'\033[0m')
-        #ask Y/N to continue, print in yellow color
-        while True:
-            answer = input('\033[93m'+"Do you want to enable the skimming mode? (Y/N): "+'\033[0m')
-            if answer == 'Y' or answer == 'y':
-                SKIMMING_MODE = True
-                break
-            elif answer == 'N' or answer == 'n':
-                SKIMMING_MODE = False
-                break
-            else:
-                print('\033[93m'+"Please enter Y or N"+'\033[0m')
-
+        print('\033[93m'+'''Skimming mode enabled. The output file will be written in gv0 and *.json file will be generated for the skimmed sample.\n'''+'\033[0m')
+        SKIMMING_MODE = True
     
     userflags = getUserFlagsList(args.Userflags)
     timestamp, string_JobStartTime = getTimeStamp()

@@ -17,7 +17,7 @@ void DiLepton::initializeAnalyzer() {
     if (IsDATA) {
         systHelper = std::make_unique<SystematicHelper>(SKNANO_HOME + "/AnalyzerTools/noSyst.yaml", DataStream, DataEra);
     } else {
-        systHelper = std::make_unique<SystematicHelper>(SKNANO_HOME + "/AnalyzerTools/DiLeptonSystematic.yaml", MCSample, DataEra);
+        systHelper = std::make_unique<SystematicHelper>(SKNANO_HOME + "/AnalyzerTools/DiLeptonSystematics.yaml", MCSample, DataEra);
     }
 }
 
@@ -33,8 +33,13 @@ void DiLepton::executeEvent() {
     fillCutflow(CutStage::NoiseFilter, Channel::NONE, initialWeight, "Central");
 
     RVec<Muon> rawMuons = GetAllMuons();
-    if (!(RunNoVetoMap || PassVetoMap(rawJets, rawMuons, "jetvetomap"))) return; // For Run3, reject events if any jet is within the veto map
+    if (!(RunNoJetVeto || PassVetoMap(rawJets, rawMuons, "jetvetomap"))) return; // For Run3, reject events if any jet is within the veto map
     fillCutflow(CutStage::VetoMap, Channel::NONE, initialWeight, "Central");
+
+    // Fill jet eta-phi for events passing veto map (Run 3)
+    if (Run == 3) {
+        FillJetEtaPhi2D(rawJets, initialWeight, "PassedEventVeto_Run3");
+    }
 
     RVec<Electron> rawElectrons = GetAllElectrons();
     
@@ -53,26 +58,26 @@ void DiLepton::executeEvent() {
             fillCutflow(CutStage::Final, selectedChannel, initialWeight, "Central");
             // Fill Central with nominal weights
             WeightInfo centralWeights = getWeights(selectedChannel, ev, centralObjects, genParts, "Central");
-            fillObjects(selectedChannel, centralObjects, centralWeights, "Central");
+            fillObjects(selectedChannel, ev, centralObjects, centralWeights, "Central");
 
             // Process weight-only systematics using Central objects
             processWeightOnlySystematics(selectedChannel, ev, centralObjects, genParts);
+        }
             
-            // Step 2: Process systematics requiring evtLoopAgain (object variations)
-            for (const auto& syst : *systHelper) {
-                TString systName = syst.iter_name;
+        // Process systematics requiring evtLoopAgain
+        for (const auto& syst : *systHelper) {
+            TString systName = syst.iter_name;
                 
-                // Skip Central (already processed) and weight-only systematics
-                if (systName == "Central" || !systHelper->findSystematic(syst.syst_name)->evtLoopAgain) continue;
+            // Skip Central (already processed) and weight-only systematics
+            if (systName == "Central" || !systHelper->findSystematic(syst.syst_name)->evtLoopAgain) continue;
                 
-                // Define objects with systematic variation
-                RecoObjects recoObjects = defineObjects(ev, rawMuons, rawElectrons, rawJets, genJets, systName);
-                Channel systChannel = selectEvent(ev, recoObjects, systName);
+            // Define objects with systematic variation
+            RecoObjects recoObjects = defineObjects(ev, rawMuons, rawElectrons, rawJets, genJets, systName);
+            Channel systChannel = selectEvent(ev, recoObjects, systName);
                 
-                if (systChannel != Channel::NONE) {
-                    WeightInfo weights = getWeights(systChannel, ev, recoObjects, genParts, systName);
-                    fillObjects(systChannel, recoObjects, weights, systName);
-                }
+            if (systChannel != Channel::NONE) {
+                WeightInfo weights = getWeights(systChannel, ev, recoObjects, genParts, systName);
+                fillObjects(systChannel, ev, recoObjects, weights, systName);
             }
         }
     } else {
@@ -85,7 +90,7 @@ void DiLepton::executeEvent() {
         if (selectedChannel != Channel::NONE) {
             fillCutflow(CutStage::Final, selectedChannel, initialWeight, "Central");
             WeightInfo weights = getWeights(selectedChannel, ev, recoObjects, genParts, "Central");
-            fillObjects(selectedChannel, recoObjects, weights, "Central");
+            fillObjects(selectedChannel, ev, recoObjects, weights, "Central");
         }
     }
 }
@@ -152,23 +157,43 @@ DiLepton::RecoObjects DiLepton::defineObjects(Event& ev,
     sort(allElectrons.begin(), allElectrons.end(), [](const Electron& a, const Electron& b) { return a.Pt() > b.Pt(); });
     sort(allJets.begin(), allJets.end(), [](const Jet& a, const Jet& b) { return a.Pt() > b.Pt(); });
 
-    RVec<Muon> looseMuons = SelectMuons(allMuons, MuonIDs->GetID("loose"), 10., 2.4);
-    RVec<Muon> tightMuons = SelectMuons(looseMuons, MuonIDs->GetID("tight"), 10., 2.4);
-    RVec<Electron> looseElectrons = SelectElectrons(allElectrons, ElectronIDs->GetID("loose"), 15., 2.5);
-    RVec<Electron> tightElectrons = SelectElectrons(looseElectrons, ElectronIDs->GetID("tight"), 15., 2.5);
-    
+    RVec<Muon> vetoMuons = SelectMuons(allMuons, MuonIDs->GetID("loose"), 10., 2.4);
+    RVec<Muon> tightMuons = SelectMuons(vetoMuons, MuonIDs->GetID("tight"), 10., 2.4);
+    // HEM veto: only apply to tight electrons, not veto (to properly reject events with extra leptons)
+    RVec<Electron> vetoElectrons = SelectElectrons(allElectrons, ElectronIDs->GetID("loose"), 10., 2.5);
+    bool applyHEMVeto = DataEra.Contains("2018") && !RunNoHEMVeto;
+
+    // Fill electron scEta-scPhi BEFORE HEM veto (2018 only, Central only)
+    if (applyHEMVeto && syst == "Central") {
+        FillElectronScEtaPhi2D(vetoElectrons, 1.0, "BeforeHEMVeto");
+    }
+
+    RVec<Electron> tightElectrons = SelectElectrons(vetoElectrons, ElectronIDs->GetID("tight"), 15., 2.5, applyHEMVeto);
+
+    // Fill electron scEta-scPhi AFTER HEM veto (2018 only, Central only)
+    if (applyHEMVeto && syst == "Central") {
+        FillElectronScEtaPhi2D(tightElectrons, 1.0, "AfterHEMVeto");
+    }
+
     const float max_jeteta = DataEra.Contains("2016") ? 2.4 : 2.5;
     RVec<Jet> tightJets = SelectJets(allJets, "tight", 20., max_jeteta);
-    if (Run == 2) tightJets = SelectJets(tightJets, "loosePuId", 20., max_jeteta);
-    RVec<Jet> tightJets_vetoLep = JetsVetoLeptonInside(tightJets, looseElectrons, looseMuons, 0.4);
+    RVec<Jet> tightJets_vetoLep = JetsVetoLeptonInside(tightJets, vetoElectrons, vetoMuons, 0.4);
+    RVec<Jet> tightJets_noPUID;  // Jets before PUID for SF calculation
+    if (Run == 2) {
+        // Fill jet eta-phi BEFORE jet-level veto (Run 2 only, Central only)
+        if (syst == "Central") FillJetEtaPhi2D(tightJets_vetoLep, 1.0, "BeforeJetVeto");
 
-    // For Run2, apply jet-by-jet veto map
-    if (Run == 2 && !RunNoVetoMap) {
-        RVec<Jet> tightJets_vetoLep_vetoMap;
-        for (const auto &jet : tightJets_vetoLep) {
-            if (PassVetoMap(jet, looseMuons, "jetvetomap")) tightJets_vetoLep_vetoMap.push_back(jet);
-        }
-        tightJets_vetoLep = tightJets_vetoLep_vetoMap;
+        RVec<Jet> tightJets_vetoMap;
+        for (const auto &jet: tightJets_vetoLep)
+            if (PassVetoMap(jet, allMuons, "jetvetomap")) tightJets_vetoMap.emplace_back(jet);
+        if (!RunNoJetVeto) tightJets_vetoLep = tightJets_vetoMap;
+
+        // Fill jet eta-phi AFTER jet-level veto (Run 2 only, Central only)
+        if (syst == "Central") FillJetEtaPhi2D(tightJets_vetoLep, 1.0, "AfterJetVeto");
+
+        // Store jets before PUID for SF calculation, then apply PUID
+        tightJets_noPUID = tightJets_vetoLep;
+        tightJets_vetoLep = SelectJets(tightJets_vetoLep, "loosePuId", 20., max_jeteta);
     }
 
     RVec<Jet> bjets;
@@ -179,12 +204,13 @@ DiLepton::RecoObjects DiLepton::defineObjects(Event& ev,
     }
 
     RecoObjects objects;
-    objects.looseMuons = looseMuons;
+    objects.vetoMuons = vetoMuons;
     objects.tightMuons = tightMuons;
-    objects.looseElectrons = looseElectrons;
+    objects.vetoElectrons = vetoElectrons;
     objects.tightElectrons = tightElectrons;
     objects.tightJets = tightJets;
     objects.tightJets_vetoLep = tightJets_vetoLep;
+    objects.tightJets_noPUID = tightJets_noPUID;
     objects.bjets = bjets;
     objects.genJets = genJets;
     objects.METv_default = METv_default;
@@ -194,18 +220,18 @@ DiLepton::RecoObjects DiLepton::defineObjects(Event& ev,
 }
 
 DiLepton::Channel DiLepton::selectEvent(Event& ev, const RecoObjects& recoObjects, const TString& syst) {
-    const RVec<Muon>& looseMuons = recoObjects.looseMuons;
+    const RVec<Muon>& vetoMuons = recoObjects.vetoMuons;
     const RVec<Muon>& tightMuons = recoObjects.tightMuons;
-    const RVec<Electron>& looseElectrons = recoObjects.looseElectrons;
+    const RVec<Electron>& vetoElectrons = recoObjects.vetoElectrons;
     const RVec<Electron>& tightElectrons = recoObjects.tightElectrons;
     const RVec<Jet>& jets = recoObjects.tightJets_vetoLep;
     const RVec<Jet>& bjets = recoObjects.bjets;
 
     float weight = IsDATA ? 1.0 : MCweight() * ev.GetTriggerLumi("Full");
-    bool isDiMu = (tightMuons.size() == 2 && looseMuons.size() == 2 && 
-                   tightElectrons.size() == 0 && looseElectrons.size() == 0);
-    bool isEMu = (tightMuons.size() == 1 && looseMuons.size() == 1 && 
-                  tightElectrons.size() == 1 && looseElectrons.size() == 1);
+    bool isDiMu = (tightMuons.size() == 2 && vetoMuons.size() == 2 && 
+                   tightElectrons.size() == 0 && vetoElectrons.size() == 0);
+    bool isEMu = (tightMuons.size() == 1 && vetoMuons.size() == 1 && 
+                  tightElectrons.size() == 1 && vetoElectrons.size() == 1);
 
     if (channel == Channel::DIMU) {
         if (!isDiMu) return Channel::NONE;
@@ -223,11 +249,11 @@ DiLepton::Channel DiLepton::selectEvent(Event& ev, const RecoObjects& recoObject
         
         const Muon& mu1 = tightMuons[0];
         const Muon& mu2 = tightMuons[1];
-        if (mu1.Pt() <= 20.) return Channel::NONE;
-        if (mu2.Pt() <= 10.) return Channel::NONE;
-        if (mu1.Charge() + mu2.Charge() != 0) return Channel::NONE;
+        if (! (mu1.Pt() > 20.)) return Channel::NONE;
+        if (! (mu2.Pt() > 10.)) return Channel::NONE;
+        if (! (mu1.Charge() + mu2.Charge() == 0)) return Channel::NONE;
         Particle pair = mu1 + mu2;
-        if (pair.M() <= 50.) return Channel::NONE;
+        if (! (pair.M() > 50.)) return Channel::NONE;
         fillCutflow(CutStage::KinematicCuts, Channel::DIMU, weight, syst);
         return Channel::DIMU;
     }
@@ -239,14 +265,14 @@ DiLepton::Channel DiLepton::selectEvent(Event& ev, const RecoObjects& recoObject
         const Muon& mu = tightMuons[0];
         const Electron& ele = tightElectrons[0];
         if (!((mu.Pt() > 25. && ele.Pt() > 15.) || (mu.Pt() > 10. && ele.Pt() > 25.))) return Channel::NONE;
-        if (mu.Charge() + ele.Charge() != 0) return Channel::NONE;
-        if (mu.DeltaR(ele) <= 0.4) return Channel::NONE;
+        if (! (mu.Charge() + ele.Charge() == 0)) return Channel::NONE;
+        if (! (mu.DeltaR(ele) > 0.4)) return Channel::NONE;
         fillCutflow(CutStage::KinematicCuts, Channel::EMU, weight, syst);
         
-        if (jets.size() < 2) return Channel::NONE;
+        if (! (jets.size() >= 2)) return Channel::NONE;
         fillCutflow(CutStage::JetRequirements, Channel::EMU, weight, syst);
         
-        if (bjets.size() < 1) return Channel::NONE;
+        if (! (bjets.size() >= 1)) return Channel::NONE;
         fillCutflow(CutStage::BjetRequirements, Channel::EMU, weight, syst);
         
         return Channel::EMU;
@@ -280,17 +306,17 @@ void DiLepton::processWeightOnlySystematics(const DiLepton::Channel& channel,
         // Up variation
         TString systNameUp = systName + "_Up";
         WeightInfo weightsUp = getWeights(channel, event, recoObjects, genParts, systNameUp);
-        fillObjects(channel, recoObjects, weightsUp, systNameUp);
+        fillObjects(channel, event, recoObjects, weightsUp, systNameUp);
         
         // Down variation
         TString systNameDown = systName + "_Down";
         WeightInfo weightsDown = getWeights(channel, event, recoObjects, genParts, systNameDown);
-        fillObjects(channel, recoObjects, weightsDown, systNameDown);
+        fillObjects(channel, event, recoObjects, weightsDown, systNameDown);
 
         // Check not implemented case
         TString systNameNotImplemented = systName + "_NotImplemented";
         WeightInfo centralWeights = getWeights(channel, event, recoObjects, genParts, "Central");
-        fillObjects(channel, recoObjects, centralWeights, systNameNotImplemented);
+        fillObjects(channel, event, recoObjects, centralWeights, systNameNotImplemented);
     }
 }
 
@@ -317,8 +343,7 @@ DiLepton::WeightInfo DiLepton::getWeights(const DiLepton::Channel& channel,
     }
 
     // SystematicHelper handles systematic validation
-    Event ev = GetEvent();
-    weights.genWeight = MCweight() * ev.GetTriggerLumi("Full");
+    weights.genWeight = MCweight() * event.GetTriggerLumi("Full");
 
     // Use SystematicHelper for weight variations or nominal values
     MyCorrection::variation var = MyCorrection::variation::nom;
@@ -334,9 +359,9 @@ DiLepton::WeightInfo DiLepton::getWeights(const DiLepton::Channel& channel,
 
     // Pileup weight
     if (syst.Contains("PileupReweight")) {
-        weights.pileupWeight = myCorr->GetPUWeight(ev.nTrueInt(), var);
+        weights.pileupWeight = myCorr->GetPUWeight(event.nTrueInt(), var);
     } else {
-        weights.pileupWeight = myCorr->GetPUWeight(ev.nTrueInt(), MyCorrection::variation::nom);
+        weights.pileupWeight = myCorr->GetPUWeight(event.nTrueInt(), MyCorrection::variation::nom);
     }
 
     // Top pT reweighting
@@ -383,8 +408,9 @@ DiLepton::WeightInfo DiLepton::getWeights(const DiLepton::Channel& channel,
     }
 
     // PileupJet ID scale factor (Run 2 only)
+    // Use jets before PUID selection for SF calculation
     if (Run == 2) {
-        const RVec<Jet>& jets = recoObjects.tightJets_vetoLep;
+        const RVec<Jet>& jets = recoObjects.tightJets_noPUID;
         const RVec<GenJet>& genJets = recoObjects.genJets;
         unordered_map<int, int> matched_idx = GenJetMatching(jets, genJets, fixedGridRhoFastjetAll, 0.4, 10.);
         if (syst.Contains("PileupJetIDSF")) {
@@ -396,21 +422,22 @@ DiLepton::WeightInfo DiLepton::getWeights(const DiLepton::Channel& channel,
         weights.pileupIDSF = 1.;
     }
 
-    // B-tagging scale factor (EMu channel only)
-    if (channel == Channel::EMU) {
-        const RVec<Jet>& jets = recoObjects.tightJets_vetoLep;
-        JetTagging::JetFlavTagger tagger = JetTagging::JetFlavTagger::DeepJet;
-        JetTagging::JetFlavTaggerWP wp = JetTagging::JetFlavTaggerWP::Medium;
-        JetTagging::JetTaggingSFMethod method = JetTagging::JetTaggingSFMethod::mujets;
-        weights.btagSF = myCorr->GetBTaggingSF(jets, tagger, wp, method);
-    } else {
-        weights.btagSF = 1.;
-    }
+    // B-tagging scale factor 
+    const RVec<Jet>& jets = recoObjects.tightJets_vetoLep;
+    JetTagging::JetFlavTagger tagger = JetTagging::JetFlavTagger::DeepJet;
+    JetTagging::JetFlavTaggerWP wp = JetTagging::JetFlavTaggerWP::Medium;
+    JetTagging::JetTaggingSFMethod method = JetTagging::JetTaggingSFMethod::mujets;
+    string source="central";
+    if (syst.Contains("HFcorr")) source = "hf_corr";
+    if (syst.Contains("HFuncorr")) source = "hf_uncorr";
+    if (syst.Contains("LFcorr")) source = "lf_corr";
+    if (syst.Contains("LFuncorr")) source = "lf_uncorr";
+    weights.btagSF = myCorr->GetBTaggingReweightMethod1a(jets, tagger, wp, method, var, source);
 
     return weights;
 }
 
-void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& recoObjects, 
+void DiLepton::fillObjects(const DiLepton::Channel& channel, const Event& ev, const RecoObjects& recoObjects, 
                           const WeightInfo& weights, const TString& syst) {
     const RVec<Muon>& muons = recoObjects.tightMuons;
     const RVec<Electron>& electrons = recoObjects.tightElectrons;
@@ -426,7 +453,8 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
         weight = weights.genWeight * weights.prefireWeight * weights.pileupWeight * 
                 weights.topPtWeight * weights.muonRecoSF * weights.muonIDSF * 
                 weights.eleRecoSF * weights.eleIDSF * weights.trigSF * 
-                weights.pileupIDSF * weights.btagSF;
+                weights.pileupIDSF;
+        if (channel == Channel::EMU) weight *= weights.btagSF;
 
         if (syst.Contains("NotImplemented")) {
             if (syst.Contains("L1Prefire")) weight /= weights.prefireWeight;
@@ -437,6 +465,7 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
             if (syst.Contains("ElectronIDSF")) weight /= (weights.eleIDSF*weights.trigSF);
             if (syst.Contains("DblMuTrigSF")) weight /= weights.trigSF;
             if (syst.Contains("EMuTrigSF")) weight /= weights.trigSF;
+            if (syst.Contains("BtagSF")) weight /= weights.btagSF;
         }
 
 
@@ -450,7 +479,7 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
         FillHist(Form("%s/%s/weights/eleIDSF", channelStr.Data(), syst.Data()), weights.eleIDSF, 1., 100, -5., 5.);
         FillHist(Form("%s/%s/weights/trigSF", channelStr.Data(), syst.Data()), weights.trigSF, 1., 100, -5., 5.);
         FillHist(Form("%s/%s/weights/pileupIDSF", channelStr.Data(), syst.Data()), weights.pileupIDSF, 1., 100, -5., 5.);
-        FillHist(Form("%s/%s/weights/btagSF", channelStr.Data(), syst.Data()), weights.btagSF, 1., 100, -5., 5.);
+        FillHist(Form("%s/%s/weights/btagSF", channelStr.Data(), syst.Data()), weights.btagSF, 1., 600, -3., 3.);
     }
 
     // Fill muon histograms
@@ -460,6 +489,9 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
         FillHist(Form("%s/%s/muons/%zu/eta", channelStr.Data(), syst.Data(), idx+1), mu.Eta(), weight, 48, -2.4, 2.4);
         FillHist(Form("%s/%s/muons/%zu/phi", channelStr.Data(), syst.Data(), idx+1), mu.Phi(), weight, 64, -3.2, 3.2);
         FillHist(Form("%s/%s/muons/%zu/mass", channelStr.Data(), syst.Data(), idx+1), mu.M(), weight, 10, 0., 1.);
+        FillHist(Form("%s/%s/muons/%zu/miniRelIso", channelStr.Data(), syst.Data(), idx+1), mu.MiniPFRelIso(), weight, 100, 0., 1.0);
+        FillHist(Form("%s/%s/muons/%zu/sip3d", channelStr.Data(), syst.Data(), idx+1), mu.SIP3D(), weight, 100, 0., 10.);
+        FillHist(Form("%s/%s/muons/%zu/dz", channelStr.Data(), syst.Data(), idx+1), mu.dZ(), weight, 100, -0.5, 0.5);
     }
 
     // Fill electron histograms
@@ -469,6 +501,9 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
         FillHist(Form("%s/%s/electrons/%zu/eta", channelStr.Data(), syst.Data(), idx+1), ele.Eta(), weight, 50, -2.5, 2.5);
         FillHist(Form("%s/%s/electrons/%zu/phi", channelStr.Data(), syst.Data(), idx+1), ele.Phi(), weight, 64, -3.2, 3.2);
         FillHist(Form("%s/%s/electrons/%zu/mass", channelStr.Data(), syst.Data(), idx+1), ele.M(), weight, 100, 0., 1.);
+        FillHist(Form("%s/%s/electrons/%zu/miniRelIso", channelStr.Data(), syst.Data(), idx+1), ele.MiniPFRelIso(), weight, 100, 0., 1.0);
+        FillHist(Form("%s/%s/electrons/%zu/sip3d", channelStr.Data(), syst.Data(), idx+1), ele.SIP3D(), weight, 100, 0., 10.);
+        FillHist(Form("%s/%s/electrons/%zu/dz", channelStr.Data(), syst.Data(), idx+1), ele.dZ(), weight, 100, -0.5, 0.5);
     }
 
     // Fill jet histograms
@@ -497,6 +532,11 @@ void DiLepton::fillObjects(const DiLepton::Channel& channel, const RecoObjects& 
     FillHist(Form("%s/%s/METv/phi", channelStr.Data(), syst.Data()), METv.Phi(), weight, 64, -3.2, 3.2);
     FillHist(Form("%s/%s/METv_default/pt", channelStr.Data(), syst.Data()), METv_default.Pt(), weight, 300, 0., 300.);
     FillHist(Form("%s/%s/METv_default/phi", channelStr.Data(), syst.Data()), METv_default.Phi(), weight, 64, -3.2, 3.2);
+    FillHist(Form("%s/%s/nPV", channelStr.Data(), syst.Data()), ev.nPV(), weight, 200, 0., 200.);
+    FillHist(Form("%s/%s/nPVsGood", channelStr.Data(), syst.Data()), ev.nPVsGood(), weight, 200, 0., 200.);
+    FillHist(Form("%s/%s/nTrueInt", channelStr.Data(), syst.Data()), ev.nTrueInt(), weight, 200, 0., 200.);
+    FillHist(Form("%s/%s/nPileUp", channelStr.Data(), syst.Data()), ev.nPileUp(), weight, 200, 0., 200.);
+    FillHist(Form("%s/%s/rho", channelStr.Data(), syst.Data()), ev.GetRho(), weight, 200, -100., 100.);
 
     if (channel == Channel::DIMU) {
         Particle pair = muons.at(0) + muons.at(1);

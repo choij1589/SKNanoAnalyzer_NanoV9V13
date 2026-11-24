@@ -11,9 +11,20 @@ SKNanoLoader::SKNanoLoader() {
     MCSample = "";
     SetEra("2018");
     xsec = 1.;
+    filterEff = 1.;
     sumW = 1.;
     sumSign = 1.;
     Userflags.clear();
+
+    // Initialize MET variables to avoid NaN
+    MET_pt = 0;
+    MET_phi = 0;
+    PuppiMET_pt = 0;
+    PuppiMET_phi = 0;
+    PuppiMET_ptUnclusteredUp = 0;
+    PuppiMET_phiUnclusteredUp = 0;
+    PuppiMET_ptUnclusteredDown = 0;
+    PuppiMET_phiUnclusteredDown = 0;
 }
 
 SKNanoLoader::~SKNanoLoader() {
@@ -237,6 +248,7 @@ void SKNanoLoader::SetMaxLeafSize(){
     Electron_convVeto.resize(kMaxElectron);
     Electron_cutBased_HEEP.resize(kMaxElectron);
     Electron_scEta.resize(kMaxElectron);
+    Electron_scPhi.resize(kMaxElectron);
     Electron_deltaEtaInSC.resize(kMaxElectron);
     Electron_deltaEtaInSeed.resize(kMaxElectron);
     Electron_deltaPhiInSC.resize(kMaxElectron);
@@ -847,6 +859,7 @@ void SKNanoLoader::Init() {
     SafeSetBranchAddress("Electron_convVeto", Electron_convVeto.data());
     SafeSetBranchAddress("Electron_cutBased_HEEP", Electron_cutBased_HEEP.data());
     SafeSetBranchAddress("Electron_scEta", Electron_scEta.data());
+    SafeSetBranchAddress("Electron_scPhi", Electron_scPhi.data());
     SafeSetBranchAddress("Electron_deltaEtaInSC", Electron_deltaEtaInSC.data());
     SafeSetBranchAddress("Electron_deltaEtaInSeed", Electron_deltaEtaInSeed.data());
     SafeSetBranchAddress("Electron_deltaPhiInSC", Electron_deltaPhiInSC.data());

@@ -1,0 +1,1078 @@
+{
+  "schema_version": 2,
+  "description": "electron fake rate corrections for 2018 (includes MC systematic sources)",
+  "corrections": [
+    {
+      "name": "fakerate_electron_Central",
+      "description": "electron fake rate - Central",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.45653867381054203,
+          0.25860123582436295,
+          0.19319194130323578,
+          0.13464922399959528,
+          0.13682386995266102,
+          0.22081931161089832,
+          0.5178226381655618,
+          0.2926754723056998,
+          0.22384404002269392,
+          0.17614705967464925,
+          0.18726742476775587,
+          0.2416304697935243,
+          0.5988447556617918,
+          0.39749818869451464,
+          0.3067561507970551,
+          0.22625244101269493,
+          0.20179543331205357,
+          0.2062223393589269
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_EMEnriched",
+      "description": "electron fake rate - QCD_EMEnriched",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.6007189062096865,
+          0.41364194608674826,
+          0.22544349579241446,
+          0.16909507844676466,
+          0.14362839101053798,
+          0.18506041894075362,
+          0.42672868682748066,
+          0.4431950084812905,
+          0.2764167040595767,
+          0.17439284916129685,
+          0.16439102988768314,
+          0.21816580547100603,
+          0.5719878516663963,
+          0.4334367079046808,
+          0.3342509581946788,
+          0.2495246859692263,
+          0.20111864665878815,
+          0.1943502950203568
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_EMEnriched_ljet",
+      "description": "electron fake rate - QCD_EMEnriched_ljet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.7844395224891872,
+          0.3653877282950825,
+          0.19257414061286218,
+          0.16081734981013782,
+          0.14058254338969345,
+          0.21023477956899472,
+          0.3263021870930296,
+          0.3381943731874438,
+          0.21742823007466638,
+          0.15594087665140202,
+          0.15091057131856267,
+          0.21453499203351237,
+          0.6586764558755747,
+          0.4056089835595974,
+          0.31700270832276856,
+          0.261824439624472,
+          0.21777448194948199,
+          0.19481671120702881
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_EMEnriched_cjet",
+      "description": "electron fake rate - QCD_EMEnriched_cjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.0,
+          0.7444500712455002,
+          0.0,
+          0.23687610685530083,
+          0.29476132512442527,
+          0.19782833433589248,
+          0.0,
+          0.03281451198190829,
+          0.4972322506446342,
+          0.5330144287609487,
+          0.011336497590569069,
+          0.33105255311617426,
+          1.0,
+          0.6323206313574742,
+          0.29563378973569343,
+          0.1485742377454409,
+          0.15402834432659285,
+          0.15925711977994184
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_EMEnriched_bjet",
+      "description": "electron fake rate - QCD_EMEnriched_bjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.00040778267370788015,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.05460848749082273,
+          0.046128822472469536,
+          1.0,
+          0.0,
+          0.28517889857438905,
+          0.001869853493377984,
+          0.13388676950133607,
+          0.5637094354610427
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_EMEnriched_pujet",
+      "description": "electron fake rate - QCD_EMEnriched_pujet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.0,
+          0.3006087421701067,
+          0.4237772613855623,
+          0.23900647674790745,
+          0.008650817691735898,
+          0.08297291547926215,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.6163935882674693,
+          0.03141279389915543,
+          0.6235921411691461,
+          0.0,
+          0.169381401402942
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_bcToE",
+      "description": "electron fake rate - QCD_bcToE",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4802093738303399,
+          0.28701038665731293,
+          0.2068402610463827,
+          0.16167044157437627,
+          0.12328863592073223,
+          0.12621776787217134,
+          0.5079823554938842,
+          0.3245582069636234,
+          0.25325768329077253,
+          0.20812158693860602,
+          0.1589988496685762,
+          0.17784857412947475,
+          0.5439848840942694,
+          0.39397811660267795,
+          0.3245716440728554,
+          0.2607210351009755,
+          0.20733047404859756,
+          0.22841258418912402
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_bcToE_ljet",
+      "description": "electron fake rate - QCD_bcToE_ljet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.7803084728984653,
+          0.5047311986651003,
+          0.369786435717076,
+          0.15719284313479767,
+          0.06615417577705139,
+          0.13480916346946267,
+          0.6908717922979416,
+          0.10958770764401703,
+          0.6002221608227379,
+          0.18583635769535387,
+          0.15121711310574945,
+          0.16241142527287553,
+          0.43368462967417903,
+          0.5220128054325227,
+          0.2700862983379764,
+          0.1900915128748076,
+          0.174079923565238,
+          0.22287850104364115
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_bcToE_cjet",
+      "description": "electron fake rate - QCD_bcToE_cjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5045416346672303,
+          0.21565476910648734,
+          0.16516993841462616,
+          0.13018764335773375,
+          0.11441871428320721,
+          0.13346309482490643,
+          0.5444343579257133,
+          0.2888909927549206,
+          0.20717721002332468,
+          0.15302705892891313,
+          0.13206968082911258,
+          0.14976282558044082,
+          0.5531039162140228,
+          0.375461044712514,
+          0.29562727555697793,
+          0.24790184336711432,
+          0.2143413643511237,
+          0.19515445653790386
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_bcToE_bjet",
+      "description": "electron fake rate - QCD_bcToE_bjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4929182043481616,
+          0.29335808537362984,
+          0.21988373291382496,
+          0.16813204389758676,
+          0.13051433428549547,
+          0.14048418313988068,
+          0.49545679373287754,
+          0.33450973819487745,
+          0.2717922007370013,
+          0.21347532706617767,
+          0.16525722535227733,
+          0.1945762035167319,
+          0.5391542394348428,
+          0.3894412289013631,
+          0.335339919752384,
+          0.26856490122615145,
+          0.21622052300119984,
+          0.24936854302350162
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_QCD_bcToE_pujet",
+      "description": "electron fake rate - QCD_bcToE_pujet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5436186265526801,
+          0.18485664187990689,
+          0.024579832038647293,
+          0.20734407550917458,
+          0.0005804635993973602,
+          0.0014484739187934038,
+          0.6120116792972274,
+          0.3281214158705312,
+          0.4909623779517846,
+          0.14817897089693782,
+          0.222572496905748,
+          0.0,
+          0.3435376197428276,
+          0.36490002226088747,
+          0.2441416317292061,
+          0.15923570256628053,
+          0.46824079209091746,
+          0.6707589736526098
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_TT",
+      "description": "electron fake rate - TT",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.43633103436362763,
+          0.26499781412688705,
+          0.19028412447953658,
+          0.1451874924469321,
+          0.11338219826733603,
+          0.12810779233271255,
+          0.4649201077969224,
+          0.29864995156145047,
+          0.23232020670599796,
+          0.18016443319752565,
+          0.14982388018995094,
+          0.17242760157398596,
+          0.5251409833108709,
+          0.37792666942895364,
+          0.30638706005854877,
+          0.23963471751072224,
+          0.20124746888315628,
+          0.1991091994838134
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_TT_ljet",
+      "description": "electron fake rate - TT_ljet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5190950531156097,
+          0.28002389709120357,
+          0.21699392843120469,
+          0.1475727578586677,
+          0.13050342679910798,
+          0.14642258412911652,
+          0.5615812943534388,
+          0.33245131109401327,
+          0.26240514537789456,
+          0.1916238428004994,
+          0.16509981901559523,
+          0.17892027968868232,
+          0.6539931020976901,
+          0.4392591633754979,
+          0.33133503245523255,
+          0.23608290409867083,
+          0.20564205353554776,
+          0.18067048676406772
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_TT_cjet",
+      "description": "electron fake rate - TT_cjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.46056719041247085,
+          0.25935273447862905,
+          0.1739934438519638,
+          0.13100278356684078,
+          0.11767516314303274,
+          0.12227277266098091,
+          0.49479933717262425,
+          0.28231812509222104,
+          0.22716451486989156,
+          0.17055346666350812,
+          0.15821976312763203,
+          0.17572242904910618,
+          0.5699210237772492,
+          0.3764264435662747,
+          0.27125697541217,
+          0.2216801801382384,
+          0.16885432600479716,
+          0.16978368798804738
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_TT_bjet",
+      "description": "electron fake rate - TT_bjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4373763541007094,
+          0.2719642772790254,
+          0.20220362407874262,
+          0.154704063989859,
+          0.12209599694060375,
+          0.13424581055537144,
+          0.4664261996938279,
+          0.309262713460146,
+          0.24327513970314024,
+          0.19184111747480867,
+          0.15398698194584923,
+          0.18049636864482632,
+          0.5102931302950202,
+          0.37204114137862004,
+          0.31415150657687485,
+          0.2507289640967694,
+          0.21295264424148458,
+          0.2266723356423674
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_electron_TT_pujet",
+      "description": "electron fake rate - TT_pujet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absScEta",
+          "type": "real",
+          "description": "Absolute supercluster pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absScEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.8,
+            1.479,
+            2.5
+          ],
+          [
+            15.0,
+            17.0,
+            20.0,
+            25.0,
+            35.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5884675873433957,
+          0.30148037649142756,
+          0.27030691812940716,
+          0.14032846453367126,
+          0.06014320358135903,
+          0.16427206728780885,
+          0.5798190203041875,
+          0.33007641026974327,
+          0.263788524927932,
+          0.25668245378614896,
+          0.158669745197062,
+          0.27086828599561,
+          0.5954382434337944,
+          0.35782020073061754,
+          0.2290592128613189,
+          0.20619252172169378,
+          0.20970740724879103,
+          0.24663628666023962
+        ],
+        "flow": "clamp"
+      }
+    }
+  ]
+}

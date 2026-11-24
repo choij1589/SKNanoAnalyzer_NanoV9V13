@@ -29,7 +29,7 @@ export SKNANO_RUNLOG="/gv0/Users/$USER/SKNanoRunlog"
 export SKNANO_OUTPUT="/data9/Users/$USER/SKNanoOutput"
 echo "@@@@ Working Directory: $SKNANO_HOME"
 
-CONFIG_FILE="$SKNANO_HOME/config/config.$USER"
+CONFIG_FILE="$SKNANO_HOME/config/config.$HOSTNAME"
 # check configuration
 if [ -f "${CONFIG_FILE}" ]; then
     echo -e "\033[32m@@@@ Reading configuration from $CONFIG_FILE\033[0m"
@@ -171,6 +171,7 @@ export CORRECTION_INCLUDE_DIR=`correction config --incdir`
 export CORRECTION_LIB_DIR=`correction config --libdir`
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CORRECTION_LIB_DIR
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$CORRECTION_LIB_DIR
+export JSONPOG_REPO_PATH=$SKNANO_HOME/external/jsonpog-integration
 echo "@@@@ Correction include: $CORRECTION_INCLUDE_DIR"
 echo "@@@@ Correction lib: $CORRECTION_LIB_DIR"
 

@@ -1,24 +1,23 @@
 build/*
 install/*
 test/*
-test.root
 LocalRuns/**
-external/lhapdf/*
-external/libtorch/*
 config/**
 !config/config.default
 !config/config.root
 **/Skim*.json
-external/** 
+external/RoccoR/**
+external/KinematicFitter/**
+external/lhapdf/**
+external/libtorch/**
 *.onnx
-!external/KinematicFitter
-!external/jsonpog-integration
-!external/RoccoR
 **/__pycache__/**
 .DS_Store
 Run*NanoAOD*
+logs/**
 
 #Temporary Added to my personal temp files
+SKFlatAnalyzer/**
 DataCOPY/** 
 MCCOPY/**
 .vscode/**

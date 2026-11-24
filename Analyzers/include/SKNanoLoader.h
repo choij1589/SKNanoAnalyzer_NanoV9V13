@@ -38,7 +38,7 @@ public:
     TString DataEra;
     TString DataPeriod;
     int Run;
-    float xsec, sumW, sumSign;
+    float xsec, filterEff, sumW, sumSign;
     RVec<TString> Userflags;
 
     virtual void Init();
@@ -260,6 +260,7 @@ public:
     RVec<Bool_t> Electron_convVeto;
     RVec<Bool_t> Electron_cutBased_HEEP;
     RVec<Float_t> Electron_scEta;
+    RVec<Float_t> Electron_scPhi;
     RVec<Float_t> Electron_deltaEtaInSC;
     RVec<Float_t> Electron_deltaEtaInSeed;
     RVec<Float_t> Electron_deltaPhiInSC;

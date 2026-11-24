@@ -1,8 +1,7 @@
 #include "MyCorrection.h"
 
 MyCorrection::MyCorrection() {}
-MyCorrection::MyCorrection(const TString &era, const TString &period, const TString &sample, const bool IsData, const string &btagging_eff_file, const string &ctagging_eff_file, const string &btagging_R_file, const string &ctagging_R_file)
-{ 
+MyCorrection::MyCorrection(const TString &era, const TString &period, const TString &sample, const bool IsData, const string &btagging_eff_file, const string &ctagging_eff_file, const string &btagging_R_file, const string &ctagging_R_file, const bool noHEMVeto) {
     cout << "[MyCorrection::MyCorrection] MyCorrection created for " << era << endl;
     SetEra(era);
     SetPeriod(period);
@@ -10,6 +9,11 @@ MyCorrection::MyCorrection(const TString &era, const TString &period, const TStr
     setIsData(IsData);
 
     EraConfig config = GetEraConfig(era, btagging_eff_file, ctagging_eff_file, btagging_R_file, ctagging_R_file);
+    if (noHEMVeto && era == "2018") {
+        const string sknano_data_str = string(getenv("SKNANO_DATA"));
+        config.json_electron_TopHNT_fakerate = sknano_data_str + "/2018/EGM/fakerate_TopHNT_noHEMVeto.json";
+        cout << "[MyCorrection::MyCorrection] noHEMVeto: using " << config.json_electron_TopHNT_fakerate << endl;
+    }
     struct CorrectionInfo {
         string name;
         string path;  
@@ -43,9 +47,12 @@ MyCorrection::MyCorrection(const TString &era, const TString &period, const TStr
     loadCorrectionSet("muon TopHNT dblmu leg2 eff", config.json_muon_TopHNT_dblmu_leg2_eff, cset_muon_TopHNT_dblmu_leg2_eff, true);
     loadCorrectionSet("muon TopHNT emu leg1 eff", config.json_muon_TopHNT_emu_leg1_eff, cset_muon_TopHNT_emu_leg1_eff, true);
     loadCorrectionSet("muon TopHNT emu leg2 eff", config.json_muon_TopHNT_emu_leg2_eff, cset_muon_TopHNT_emu_leg2_eff, true);
+    loadCorrectionSet("muon TopHNT fakerate", config.json_muon_TopHNT_fakerate, cset_muon_TopHNT_fakerate, true);
     loadCorrectionSet("electron TopHNT idsf", config.json_electron_TopHNT_idsf, cset_electron_TopHNT_idsf, true);
     loadCorrectionSet("electron TopHNT emu leg1 eff", config.json_electron_TopHNT_emu_leg1_eff, cset_electron_TopHNT_emu_leg1_eff, true);
     loadCorrectionSet("electron TopHNT emu leg2 eff", config.json_electron_TopHNT_emu_leg2_eff, cset_electron_TopHNT_emu_leg2_eff, true);
+    loadCorrectionSet("electron TopHNT fakerate", config.json_electron_TopHNT_fakerate, cset_electron_TopHNT_fakerate, true);
+    loadCorrectionSet("WZ Nj SF", config.json_WZ_Nj_SF, cset_WZ_Nj_SF, true);
 
 
     LUM_keys["2023BPix"] = "Collisions2023_369803_370790_eraD_GoldenJson";
@@ -138,7 +145,6 @@ MyCorrection::EraConfig MyCorrection::GetEraConfig(TString era, const string &bt
     const string sknano_data_str(sknano_data);
     const string external_roccor_str(external_roccor);
 
-
     config.json_muon = json_pog_path_str + "/POG/MUO";
     config.json_muon_trig_eff = sknano_data_str;
     config.json_puWeights = json_pog_path_str + "/POG/LUM";
@@ -164,9 +170,13 @@ MyCorrection::EraConfig MyCorrection::GetEraConfig(TString era, const string &bt
     config.json_muon_TopHNT_dblmu_leg2_eff = sknano_data_str + "/" + DataEra.Data() + "/MUO/efficiency_Mu8Leg2.json";
     config.json_muon_TopHNT_emu_leg1_eff = sknano_data_str + "/" + DataEra.Data() + "/MUO/efficiency_Mu23El12_Mu23Leg.json";
     config.json_muon_TopHNT_emu_leg2_eff = sknano_data_str + "/" + DataEra.Data() + "/MUO/efficiency_Mu8El23_Mu8Leg.json";
+    config.json_muon_TopHNT_fakerate = sknano_data_str + "/" + DataEra.Data() + "/MUO/fakerate_TopHNT.json";
     config.json_electron_TopHNT_idsf = sknano_data_str + "/" + DataEra.Data() + "/EGM/efficiency_TopHNT.json";
     config.json_electron_TopHNT_emu_leg1_eff = sknano_data_str + "/" + DataEra.Data() + "/EGM/efficiency_Mu8El23_El23Leg.json";
     config.json_electron_TopHNT_emu_leg2_eff = sknano_data_str + "/" + DataEra.Data() + "/EGM/efficiency_Mu23El12_El12Leg.json";
+    config.json_electron_TopHNT_fakerate = sknano_data_str + "/" + DataEra.Data() + "/EGM/fakerate_TopHNT.json";
+    config.json_WZ_Nj_SF = sknano_data_str;
+
     if (era == "2016preVFP") {
         config.json_muon += "/2016preVFP_UL/muon_Z.json.gz";
         config.json_muon_trig_eff += "/2016preVFP/MUO/muon_trig.json";
@@ -322,6 +332,14 @@ MyCorrection::EraConfig MyCorrection::GetEraConfig(TString era, const string &bt
     } else {
         throw invalid_argument("[MyCorrection::GetEraConfig] Invalid era: " + era);
     }
+
+    if (Run == 2) {
+        config.json_WZ_Nj_SF += "/Run2/WZSF/WZNjetsSF.json";
+    } else if (Run == 3) {
+        config.json_WZ_Nj_SF += "/Run3/WZSF/WZNjetsSF.json";
+    } else {
+        throw invalid_argument("[MyCorrection::GetEraConfig] Invalid run number");
+    }
     
     return config;
 }
@@ -405,6 +423,22 @@ float MyCorrection::GetMuonIDSF(const TString &Muon_ID_SF_Key, const RVec<Muon> 
         weight *= GetMuonIDSF(Muon_ID_SF_Key, muon, syst);
     }
     return weight;
+}
+
+float MyCorrection::GetFakeRate(const Muon muon, const TString &id_key, const TString &syst_key) const {
+    if (id_key == "TopHNT") {
+        const float absEta = fabs(muon.Eta());
+        // For Run3, restrict the ptCorr < 50 GeV
+        float ptCorr = muon.Pt();
+        ptCorr = ((Run == 3) ? (ptCorr > 50. ? 49. : ptCorr) : ptCorr);
+        const string cset_name = "fakerate_muon_" + string(syst_key.Data());
+        auto cset = cset_muon_TopHNT_fakerate->at(cset_name);
+        return safeEvaluate(cset, "GetFakeRate", {(double)absEta, (double)ptCorr});
+    } else {
+        // This is only a template
+        auto cset = cset_muon->at(string(id_key));
+        return safeEvaluate(cset, "GetFakeRate", {fabs(muon.Eta()), muon.OriginalPt()});
+    }
 }
 
 // Electron
@@ -514,8 +548,8 @@ float MyCorrection::GetElectronRECOSF(const RVec<Electron> &electrons, const var
 float MyCorrection::GetElectronIDSF(const TString &Electron_ID_SF_Key, const float eta, const float pt, const float phi, const variation syst) const {
     if (Electron_ID_SF_Key == "TopHNT") {
         auto cset = cset_electron_TopHNT_idsf->at("sf");
-        const bool isLowStat = (GetEra() == "2022" || GetEra() == "2023BPix");
-        const float maxPt = isLowStat ? 99. : 199.;
+        //const bool isLowStat = (GetEra() == "2022" || GetEra() == "2023BPix");
+        const float maxPt = (Run == 3) ? 99. : 199.;
         if (syst == variation::nom) {
             return safeEvaluate(cset, "GetElectronIDSF", {eta, min(pt, maxPt), "nom"});
         } else if (syst == variation::up) {
@@ -552,6 +586,20 @@ float MyCorrection::GetElectronIDSF(const TString &Electron_ID_SF_Key, const RVe
         }
     }
     return weight;
+}
+
+float MyCorrection::GetFakeRate(const Electron &electron, const TString &id_key, const TString &syst_key) const {
+    if (id_key == "TopHNT") {
+        const float absScEta = fabs(electron.scEta());
+        float ptCorr = electron.Pt();
+        const string cset_name = "fakerate_electron_" + string(syst_key.Data());
+        auto cset = cset_electron_TopHNT_fakerate->at(cset_name);
+        return safeEvaluate(cset, "GetFakeRate", {(double)absScEta, (double)ptCorr});
+    } else {
+        // This is only a template
+        auto cset = cset_electron->at(string(id_key));
+        return safeEvaluate(cset, "GetFakeRate", {fabs(electron.Eta()), electron.Pt()});
+    }
 }
 
 // Trigger
@@ -725,10 +773,24 @@ float MyCorrection::GetEMuTriggerEff(const RVec<Electron> &electrons, const RVec
         float case2 = mu2.Pt() > 25. ? GetTriggerEff(mu1, "EMu_Mu23Leg", isData, syst)
                                         + (1.-GetTriggerEff(mu1, "EMu_Mu23Leg", isData, syst))*GetTriggerEff(mu2, "EMu_Mu23Leg", isData, syst)*filter_eff
                                     : GetTriggerEff(mu1, "EMu_Mu23Leg", isData, syst);
-        float eff_el = (mu1.Pt() > 25. || mu2.Pt() > 25.) ? GetTriggerEff(el, "EMu_El12Leg", isData, syst) : GetTriggerEff(el, "EMu_El23Leg", isData, syst);
+        float eff_el = mu1.Pt() > 25. ? GetTriggerEff(el, "EMu_El12Leg", isData, syst) : GetTriggerEff(el, "EMu_El23Leg", isData, syst);
         float eff_mu = el.Pt() > 25. ? case1 : case2;
-        return eff_el * eff_mu * filter_eff;
-    } else {
+        return eff_el*eff_mu*filter_eff;
+    } else if (electrons.size() == 2 && muons.size() == 1) {
+        const auto &el1 = electrons.at(0);
+        const auto &el2 = electrons.at(1);
+        const auto &mu = muons.at(0);
+
+        float case1 = GetTriggerEff(el1, "EMu_El12Leg", isData, syst) + (1.-GetTriggerEff(el1, "EMu_El12Leg", isData, syst))*GetTriggerEff(el2, "EMu_El12Leg", isData, syst)*filter_eff;
+        float case2 = el2.Pt() > 25. ? GetTriggerEff(el1, "EMu_El23Leg", isData, syst) + (1.-GetTriggerEff(el1, "EMu_El23Leg", isData, syst))*GetTriggerEff(el2, "EMu_El23Leg", isData, syst)*filter_eff
+                                    : GetTriggerEff(el1, "EMu_El23Leg", isData, syst);
+        float eff_mu = el1.Pt() > 25. ? GetTriggerEff(mu, "EMu_Mu8Leg", isData, syst)
+                                    : GetTriggerEff(mu, "EMu_Mu23Leg", isData, syst);
+        float eff_el = mu.Pt() > 25. ? case1 : case2;
+        return eff_mu*eff_el*filter_eff;
+    } 
+    
+    else {
         throw runtime_error("[MyCorrection::GetEMuTriggerEff] Invalid electron and muon size configuration");
     }
 }
@@ -764,7 +826,7 @@ float MyCorrection::GetPairwiseFilterEff(const TString &filter_name, const bool 
         } else if (GetEra() == "2018") {
             return isData? 0.9988 : 0.9998;
         } else if (GetEra() == "2022") {
-            return isData? 1. : 0.9998;
+            return isData? 0.9996 : 0.9999;
         } else if (GetEra() == "2022EE") {
             return isData? 0.9994 : 0.9998;
         } else if (GetEra() == "2023") {
@@ -789,9 +851,9 @@ float MyCorrection::GetPairwiseFilterEff(const TString &filter_name, const bool 
         } else if (GetEra() == "2022EE") {
             return isData? 0.9949 : 0.9976;
         } else if (GetEra() == "2023") {
-            return isData? 0.9944 : 0.9977;
+            return isData? 0.9943 : 0.9977;
         } else if (GetEra() == "2023BPix") {
-            return isData? 0.9930 : 0.9972;
+            return isData? 0.9930 : 0.9973;
         } else {
             cerr << "[MyCorrection::GetPairwiseFilterEff] " << filter_name << " is not implemented for " << GetEra() << endl;
             return 1.;
@@ -857,10 +919,72 @@ float MyCorrection::GetBTaggingEff(const float eta, const float pt, const int fl
     return safeEvaluate(cset, "GetBTaggingSF", {"central", this_wpStr, flav, fabs(eta), pt});
 }
 
+// For fixed point WP
+// sources are central, hf_corr, hf_uncorr, lf_corr, lf_uncorr
+float MyCorrection::GetBTaggingReweightMethod1a(const RVec<Jet> &jets, const JetTagging::JetFlavTagger tagger, const JetTagging::JetFlavTaggerWP wp, const JetTagging::JetTaggingSFMethod method, const variation syst, const TString &source) {
+    if (tagger != JetTagging::JetFlavTagger::DeepJet) {
+        cerr << "[MyCorrection::GetBTaggingSF] Current implementation is for DeepJet tagger << endl";
+        exit(EXIT_FAILURE);
+    }
+    if (! (method == JetTagging::JetTaggingSFMethod::comb || method == JetTagging::JetTaggingSFMethod::mujets)) {
+        cerr << "[MyCorrection::GetBTaggingSF] Current implementation is for comb or mujets method only" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string this_taggerStr = JetTagging::GetTaggerCorrectionLibStr(tagger).Data();
+    string this_wpStr = JetTagging::GetTaggerCorrectionWPStr(wp).Data();
+    string syst_str = getSystString_BTV(syst);
+    
+    // Set source string for hf / lf
+    string source_lf = "central";
+    string source_hf = "central";
+    if (source == "hf_corr") {
+        source_hf = syst_str+"_correlated";
+    } else if (source == "hf_uncorr") {
+        source_hf = syst_str+"_uncorrelated";
+    } else if (source == "lf_corr") {
+        source_lf = syst_str+"_correlated";
+    } else if (source == "lf_uncorr") {
+        source_lf = syst_str+"_uncorrelated";
+    } else {
+        try {
+            assert(source == "central");
+        } catch (const std::exception &e) {
+            cerr << "[MyCorrection::GetBTaggingSF] Invalid source: " << source << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    float weight = 1.;
+    auto cset = cset_btagging->at(this_taggerStr+"_"+JetTagging::GetJetTaggingSFMethodStr(method).Data());
+    string light_str = (Run == 2) ? this_taggerStr+"_incl" : this_taggerStr+"_light";
+    auto cset_light = cset_btagging->at(light_str);
+    float this_cut = GetBTaggingWP(tagger, wp);
+    for (const auto &jet : jets) {
+        const bool is_heavy = abs(jet.hadronFlavour()) == 5 || abs(jet.hadronFlavour()) == 4;
+        const int this_flav = is_heavy ? abs(jet.hadronFlavour()) : 0;
+        auto this_source = is_heavy ? source_hf : source_lf;
+        auto this_cset = is_heavy ? cset : cset_light;
+        const float eff = GetBTaggingEff(jet.Eta(), jet.Pt(), this_flav, tagger, wp, syst);
+
+        const float sf = safeEvaluate(this_cset, "GetBTaggingSF", {this_source, this_wpStr, this_flav, fabs(jet.Eta()), jet.Pt()});
+        if (jet.GetBTaggerResult(tagger) > this_cut) {
+            weight *= sf;
+        } else {
+            // To avoid dividing by 0
+            const float denom = (eff == 1) ? 0.01 : (1.-eff);
+            weight *= (1. - eff * sf) / denom;
+        }
+    }
+    return weight;
+}
+
+
+
 float MyCorrection::GetBTaggingSF(const RVec<Jet> &jets, const JetTagging::JetFlavTagger tagger, const JetTagging::JetFlavTaggerWP wp, const JetTagging::JetTaggingSFMethod method, const variation syst, const TString &source) {
     if (Run == 2 && tagger != JetTagging::JetFlavTagger::DeepJet) {
-        cerr << "[MyCorrection::GetBTaggingSF] DeepJet is the only supported tagger for 2016preVFP, 2016postVFP, 2017, 2018, and 2018UL" << endl;
-        return 1.;
+        cerr << "[MyCorrection::GetBTaggingSF] DeepJet is the only supported tagger for Run2 UL" << endl;
+        exit(EXIT_FAILURE);
     }
     
     string this_taggerStr = JetTagging::GetTaggerCorrectionLibStr(tagger).Data();
@@ -897,7 +1021,7 @@ float MyCorrection::GetBTaggingSF(const RVec<Jet> &jets, const JetTagging::JetFl
             }
         }
         return weight;
-    } else if (method == JetTagging::JetTaggingSFMethod::comb or method == JetTagging::JetTaggingSFMethod::mujets) {
+    } else if ((method == JetTagging::JetTaggingSFMethod::comb) || (method == JetTagging::JetTaggingSFMethod::mujets)) {
         auto cset = cset_btagging->at(this_taggerStr + "_" + JetTagging::GetJetTaggingSFMethodStr(method).Data());
         string light_str;
         if (Run == 2)
@@ -1267,4 +1391,19 @@ float MyCorrection::GetTopPtReweight(const RVec<Gen> &gens) const {
     float top_sf = a * TMath::Exp(b * top->Pt()) - c * top->Pt() + d;
     float antitop_sf = a * TMath::Exp(b * antitop->Pt()) - c * antitop->Pt() + d;
     return TMath::Sqrt(top_sf * antitop_sf);
+}
+
+float MyCorrection::GetWZNjetsSF(const float &njets, const string &syst) const {
+    if (! (Sample.Contains("WZTo3LNu"))) return 1.;
+
+    string cset_string;
+    if (Run == 2) {
+        cset_string = "WZNjetsSF_WZCombined_Run2_" + syst;
+    } else if (Run == 3) {
+        cset_string = "WZNjetsSF_WZCombined_Run3_" + syst;
+    } else {
+        throw invalid_argument("[MyCorrection::GetWZNjetsSF] Invalid run number");
+    }
+    auto cset = cset_WZ_Nj_SF->at(cset_string);
+    return safeEvaluate(cset, "GetWZNjetsSF", {njets});
 }

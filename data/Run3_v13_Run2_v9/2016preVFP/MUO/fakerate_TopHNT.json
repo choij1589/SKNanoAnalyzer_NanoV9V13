@@ -1,0 +1,787 @@
+{
+  "schema_version": 2,
+  "description": "muon fake rate corrections for 2016preVFP (includes MC systematic sources)",
+  "corrections": [
+    {
+      "name": "fakerate_muon_Central",
+      "description": "muon fake rate - Central",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5163044461929386,
+          0.303463039408547,
+          0.20819847761551694,
+          0.17736348545755984,
+          0.12528957117937609,
+          0.07487603703595705,
+          0.04584892631474978,
+          0.5262727138603427,
+          0.3200245157953513,
+          0.23381070981711924,
+          0.19018851876640025,
+          0.14595454850349246,
+          0.0940180272944948,
+          0.08605804103926544,
+          0.5533718743862278,
+          0.3669892129573442,
+          0.2712295357627732,
+          0.2369551246290707,
+          0.19240208365786735,
+          0.12309596963576966,
+          0.12735536401231506
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_QCD_MuEnriched",
+      "description": "muon fake rate - QCD_MuEnriched",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5301710940333983,
+          0.32055350745942074,
+          0.23614736722578977,
+          0.19025954827570737,
+          0.13974889357604042,
+          0.07872448031095826,
+          0.05763915831395939,
+          0.5316969541595287,
+          0.3419539126534212,
+          0.2525605703396708,
+          0.2128458000492308,
+          0.16597506110125423,
+          0.09987960525191976,
+          0.07251334009901753,
+          0.5537100810924817,
+          0.38242782094544253,
+          0.2926902873430825,
+          0.2457807690602382,
+          0.20500731256886057,
+          0.1374614391501579,
+          0.10754828935235407
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_QCD_MuEnriched_ljet",
+      "description": "muon fake rate - QCD_MuEnriched_ljet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.5896667125072651,
+          0.3359635709034448,
+          0.26152720221404285,
+          0.2534077471420225,
+          0.22405227334397235,
+          0.2017072653383029,
+          0.25009454620812366,
+          0.6225659985619415,
+          0.3478786830855593,
+          0.24251766974181724,
+          0.2661750407461033,
+          0.26662801129789093,
+          0.243581467335977,
+          0.26790364533769645,
+          0.6336890187110118,
+          0.42548951711028543,
+          0.33138570255834243,
+          0.2858958817699818,
+          0.25426079378688465,
+          0.2729195840006846,
+          0.29174518673252864
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_QCD_MuEnriched_cjet",
+      "description": "muon fake rate - QCD_MuEnriched_cjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4510018617202557,
+          0.20977666727342692,
+          0.13836195186786088,
+          0.1156391324124388,
+          0.09232372903199526,
+          0.07676669805296933,
+          0.07374069262046133,
+          0.487589271347731,
+          0.2570551260673993,
+          0.15183102445878147,
+          0.12393276572196316,
+          0.09968390365295003,
+          0.08400155767014365,
+          0.07351342995406644,
+          0.5231522549736172,
+          0.31547337402082815,
+          0.19929397816444727,
+          0.16471016184699422,
+          0.13875085524013228,
+          0.10823756678402995,
+          0.09788388692265536
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_QCD_MuEnriched_bjet",
+      "description": "muon fake rate - QCD_MuEnriched_bjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.49384461244829786,
+          0.348949477472815,
+          0.27921145075541237,
+          0.21176833933006073,
+          0.15419511724048057,
+          0.06488807812454385,
+          0.038853535977946586,
+          0.5250039457814923,
+          0.3752951850496422,
+          0.2939591724569782,
+          0.24399428600118414,
+          0.17973691006557224,
+          0.08910933068071276,
+          0.059046245185766975,
+          0.5384440297407722,
+          0.4077442516825081,
+          0.32488527204740214,
+          0.2676955370571041,
+          0.20606767597605796,
+          0.12459546404924893,
+          0.07681700153432633
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_QCD_MuEnriched_pujet",
+      "description": "muon fake rate - QCD_MuEnriched_pujet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.6519247111080604,
+          0.544733708281325,
+          0.2154649870660584,
+          0.06138718155382287,
+          0.04983324921716897,
+          0.011079929174461805,
+          0.009199793336326312,
+          0.6560578203971328,
+          0.6026965969980881,
+          0.06706912847667293,
+          0.12269850702239783,
+          0.0830389693610915,
+          0.15022977145311361,
+          0.0021315902518648047,
+          0.6798431723336643,
+          0.6607058621581154,
+          0.3712140652028773,
+          0.27561941415056007,
+          0.12034205306038279,
+          0.2532246023531479,
+          0.3967781950497779
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_TT",
+      "description": "muon fake rate - TT",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4734929964730593,
+          0.292674388490047,
+          0.2187914161143225,
+          0.1791689592703002,
+          0.12793661336404696,
+          0.06793405385119736,
+          0.049941953573123775,
+          0.4816406581458267,
+          0.30118746185970136,
+          0.23188729597044175,
+          0.19798886120624157,
+          0.14397304453075174,
+          0.08475506786540753,
+          0.060245887627131456,
+          0.5064445435489373,
+          0.3529530434770629,
+          0.27274967483735624,
+          0.23566690267223833,
+          0.18159402613522385,
+          0.12574989933572825,
+          0.09985112886591932
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_TT_ljet",
+      "description": "muon fake rate - TT_ljet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.45944385395570797,
+          0.2466921467941948,
+          0.2256213624038387,
+          0.18443697945247892,
+          0.19918747771325476,
+          0.22878163035401944,
+          0.18198631937963508,
+          0.5166562508244995,
+          0.3213055147091452,
+          0.24154354291510374,
+          0.2687825380501732,
+          0.20469830490719731,
+          0.16181807747991617,
+          0.13150638949420626,
+          0.47213107417334615,
+          0.5079515682317334,
+          0.3319202876099539,
+          0.30029871640789313,
+          0.26466057418852784,
+          0.32435433261848856,
+          0.17909804752945693
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_TT_cjet",
+      "description": "muon fake rate - TT_cjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.4455689238531358,
+          0.1817956085418853,
+          0.13768796629717786,
+          0.11294800220681056,
+          0.11059010510216867,
+          0.07845820565506399,
+          0.08111010986516207,
+          0.4512431359170914,
+          0.2380740352886758,
+          0.160254928449403,
+          0.1300310543501929,
+          0.11898538275008434,
+          0.09389257933077644,
+          0.07461992223747982,
+          0.5012741000069424,
+          0.286206908709243,
+          0.1936347473751936,
+          0.1769853785477322,
+          0.16715390417387432,
+          0.11920296567401296,
+          0.0849045046366541
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_TT_bjet",
+      "description": "muon fake rate - TT_bjet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.466954836173117,
+          0.29909788795043096,
+          0.2431362658317257,
+          0.20234015287617957,
+          0.142217395240259,
+          0.06665937131102281,
+          0.045587812956250084,
+          0.47534491260215367,
+          0.3304904760158874,
+          0.24996343179130157,
+          0.21890692313799873,
+          0.15843464257029696,
+          0.08859840890922213,
+          0.05746684074053133,
+          0.4955900999404822,
+          0.36586465144817343,
+          0.27910309674620065,
+          0.24501264154123822,
+          0.18723891521457597,
+          0.11899212764809704,
+          0.09354019857780846
+        ],
+        "flow": "clamp"
+      }
+    },
+    {
+      "name": "fakerate_muon_TT_pujet",
+      "description": "muon fake rate - TT_pujet",
+      "version": 1,
+      "inputs": [
+        {
+          "name": "absEta",
+          "type": "real",
+          "description": "Absolute pseudorapidity"
+        },
+        {
+          "name": "ptCorr",
+          "type": "real",
+          "description": "Corrected transverse momentum [GeV]"
+        }
+      ],
+      "output": {
+        "name": "out",
+        "type": "real",
+        "description": "out"
+      },
+      "data": {
+        "nodetype": "multibinning",
+        "inputs": [
+          "absEta",
+          "ptCorr"
+        ],
+        "edges": [
+          [
+            0.0,
+            0.9,
+            1.6,
+            2.4
+          ],
+          [
+            10.0,
+            12.0,
+            14.0,
+            17.0,
+            20.0,
+            30.0,
+            50.0,
+            100.0
+          ]
+        ],
+        "content": [
+          0.578302579514441,
+          0.41555579171983437,
+          0.2608743997991605,
+          0.18920606449469907,
+          0.09625304462875105,
+          0.08346740341412384,
+          0.0,
+          0.6066733650197115,
+          0.46951269278858726,
+          0.1645633184852805,
+          0.2790710128833125,
+          0.20807208921990042,
+          0.14491838392700102,
+          0.0,
+          0.5907225388243549,
+          0.41517441079356615,
+          0.3837976677039597,
+          0.2001487838258584,
+          0.1475795908916255,
+          0.09432764756437147,
+          0.0
+        ],
+        "flow": "clamp"
+      }
+    }
+  ]
+}

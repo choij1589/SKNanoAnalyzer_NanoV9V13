@@ -5,18 +5,21 @@ DiLeptonBase::~DiLeptonBase() {}
 
 void DiLeptonBase::initializeAnalyzer() {
     // Flags
-    RunDiMu = HasFlag("RunDiMu");
-    RunEMu = HasFlag("RunEMu");
-    RunNoVetoMap = HasFlag("RunNoVetoMap");
-    MeasFakeMu8 = HasFlag("MeasFakeMu8");
+    RunDiMu      = HasFlag("RunDiMu");
+    RunEMu       = HasFlag("RunEMu");
+    Run1E2Mu     = HasFlag("Run1E2Mu");
+    Run3Mu       = HasFlag("Run3Mu");
+    RunNoJetVeto = HasFlag("RunNoJetVeto");
+    RunNoHEMVeto = HasFlag("RunNoHEMVeto");
+    MeasFakeMu8  = HasFlag("MeasFakeMu8");
     MeasFakeMu17 = HasFlag("MeasFakeMu17");
-    MeasFakeEl8 = HasFlag("MeasFakeEl8");
+    MeasFakeEl8  = HasFlag("MeasFakeEl8");
     MeasFakeEl12 = HasFlag("MeasFakeEl12");
     MeasFakeEl23 = HasFlag("MeasFakeEl23");
-    RunSyst = HasFlag("RunSyst");
+    RunSyst      = HasFlag("RunSyst");
 
     // Lepton IDs and triggers
-    MuonIDs = new IDContainer("HcToWATight", "HcToWALoose");
+    MuonIDs = new IDContainer("HcToWATight", ((Run == 2) ? "HcToWALooseRun2" : "HcToWALooseRun3"));
     ElectronIDs = new IDContainer("HcToWATight", ((Run == 2) ? "HcToWALooseRun2" : "HcToWALooseRun3"));
     if (DataEra == "2016preVFP") {
         DblMuTriggers = {
@@ -44,8 +47,9 @@ void DiLeptonBase::initializeAnalyzer() {
         triggerSafePtCut = 27.;
     } else if (DataEra == "2017") {
         DblMuTriggers = {
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", // prescaled
             "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
+            //"HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8" // Need to measure the filter eff.
         };
         EMuTriggers = {
             "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",

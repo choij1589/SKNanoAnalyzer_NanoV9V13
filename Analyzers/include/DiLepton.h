@@ -27,12 +27,13 @@ public:
     }
 
     struct RecoObjects {
-        RVec<Muon> looseMuons;
+        RVec<Muon> vetoMuons;
         RVec<Muon> tightMuons;
-        RVec<Electron> looseElectrons;
+        RVec<Electron> vetoElectrons;
         RVec<Electron> tightElectrons;
         RVec<Jet> tightJets;
         RVec<Jet> tightJets_vetoLep;
+        RVec<Jet> tightJets_noPUID;  // Jets before PUID for SF calculation (Run 2)
         RVec<Jet> bjets;
         RVec<GenJet> genJets;
         Particle METv_default;
@@ -77,6 +78,7 @@ private:
                           const TString& syst = "Central");
     
     void fillObjects(const Channel& channel,
+                     const Event& ev,
                      const RecoObjects& recoObjects, 
                      const WeightInfo& weights, 
                      const TString& syst = "Central");
