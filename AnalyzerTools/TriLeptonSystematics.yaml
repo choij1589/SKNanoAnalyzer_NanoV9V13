@@ -32,6 +32,8 @@ systematics:
     
   - syst: MuonIDSF
     
+  - syst: ElectronRecoSF
+  
   - syst: ElectronIDSF
     
   - syst: PileupJetIDSF

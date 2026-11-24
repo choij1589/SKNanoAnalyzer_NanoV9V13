@@ -44,15 +44,18 @@
 
 # Signal Region
 #./scripts/submission/TriLepton.sh Run2 Run1E2Mu SR
-./scripts/submission/TriLepton.sh Run2 Run3Mu SR
-./scripts/submission/TriLepton.sh Run2 Run2E1Mu SR
-./scripts/submission/TriLepton.sh Run3 Run1E2Mu SR
-./scripts/submission/TriLepton.sh Run3 Run3Mu SR
-./scripts/submission/TriLepton.sh Run3 Run2E1Mu SR
+#./scripts/submission/TriLepton.sh Run2 Run3Mu SR
+#./scripts/submission/TriLepton.sh Run2 Run2E1Mu SR
+#./scripts/submission/TriLepton.sh Run3 Run1E2Mu SR
+#./scripts/submission/TriLepton.sh Run3 Run3Mu SR
+#./scripts/submission/TriLepton.sh Run3 Run2E1Mu SR
 
-#./scripts/submission/TriLepton_PN.sh Run2 Run1E2Mu MHc115
-#./scripts/submission/TriLepton_PN.sh Run2 Run3Mu MHc115
-#./scripts/submission/TriLepton_PN.sh Run2 Run2E1Mu MHc115
-#./scripts/submission/TriLepton_PN.sh Run3 Run1E2Mu MHc115
-#./scripts/submission/TriLepton_PN.sh Run3 Run3Mu MHc115
-#./scripts/submission/TriLepton_PN.sh Run3 Run2E1Mu MHc115
+#for mHc in 160; do
+#    ./scripts/submission/TriLepton_PN.sh Run2 Run1E2Mu MHc${mHc}
+#    ./scripts/submission/TriLepton_PN.sh Run2 Run3Mu MHc${mHc}
+#    ./scripts/submission/TriLepton_PN.sh Run2 Run2E1Mu MHc${mHc}
+#    ./scripts/submission/TriLepton_PN.sh Run3 Run1E2Mu MHc${mHc}
+#    ./scripts/submission/TriLepton_PN.sh Run3 Run3Mu MHc${mHc}
+#    ./scripts/submission/TriLepton_PN.sh Run3 Run2E1Mu MHc${mHc}
+#done
+

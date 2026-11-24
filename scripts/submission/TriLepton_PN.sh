@@ -69,7 +69,7 @@ if [[ -n "${MHc}" ]]; then
     PN_FLAGS="${CHANNEL},${MHc}"
 fi
 
-SKNano.py -a PromptAnalyzer -i ${DATASTREAM} -n 10 -r ${RUN} --userflags ${PN_FLAGS},NoHistMode --python --memory 4000
-SKNano.py -a MatrixAnalyzer -i ${DATASTREAM} -n 10 -r ${RUN} --userflags ${PN_FLAGS},NoHistMode --python --memory 4000
-SKNano.py -a PromptAnalyzer -i ${MC_LIST}/TriLepton.txt -n 40 -r ${RUN} --userflags ${PN_FLAGS},RunSyst,NoHistMode --python --memory 8000
-SKNano.py -a PromptAnalyzer -i ${PN_SIGNAL_SAMPLES} -n 20 -r ${RUN} --userflags ${PN_FLAGS},RunSyst,RunTheoryUnc,NoHistMode --python --memory 8000
+SKNano.py -a PromptAnalyzer -i ${DATASTREAM} -n 10 -r ${RUN} --userflags ${PN_FLAGS},NoHistMode --python --memory 8000
+SKNano.py -a MatrixAnalyzer -i ${DATASTREAM} -n 10 -r ${RUN} --userflags ${PN_FLAGS},NoHistMode --python --memory 8000
+SKNano.py -a PromptAnalyzer -i ${MC_LIST}/TriLepton.txt -n 40 -r ${RUN} --userflags ${PN_FLAGS},RunSyst,NoHistMode --python --memory 12000
+SKNano.py -a PromptAnalyzer -i ${PN_SIGNAL_SAMPLES} -n 20 -r ${RUN} --userflags ${PN_FLAGS},RunSyst,RunTheoryUnc,NoHistMode --python --memory 12000

@@ -293,12 +293,7 @@ class PromptAnalyzer(TriLeptonBase):
                     self.fillTree(channel, recoObjects, weights, "Central")
 
                 # Get weight-only systematics
-                weightOnlySysts = list(self.systHelper.getWeightOnlySystematics())
-                if self.RunSyst and "1E2Mu" in channel:
-                    weightOnlySysts.remove("DblMuTrigSF")
-                if self.RunSyst and "3Mu" in channel:
-                    weightOnlySysts.remove("ElectronIDSF")
-                    weightOnlySysts.remove("EMuTrigSF")
+                weightOnlySysts = self.getChannelWeightOnlySystematics()
 
                 for systName in weightOnlySysts:
                     weights_up = self.getWeights(ev, recoObjects, genJets, f"{systName}_Up")
@@ -877,6 +872,26 @@ class PromptAnalyzer(TriLeptonBase):
     # Weight Calculation
     # ===================================================================
 
+    def getChannelWeightOnlySystematics(self) -> list:
+        """Weight-only systematics that have an actual handle in this channel.
+
+        Systematics without a handle are dropped entirely, so that neither histograms
+        nor output trees are booked for them.
+        """
+        systs = list(self.systHelper.getWeightOnlySystematics())
+        if self.IsDATA or not self.RunSyst:  # noSyst.yaml, already empty
+            return systs
+
+        if "3Mu" in self.channel:
+            # DblMu triggered, no electrons in the final state
+            systs.remove("ElectronRecoSF")
+            systs.remove("ElectronIDSF")
+            systs.remove("EMuTrigSF")
+        else:
+            # 1E2Mu and 2E1Mu are EMu triggered
+            systs.remove("DblMuTrigSF")
+        return systs
+
     def getTotalWeight(self, weights: dict) -> float:
         totWeight = weights["genWeight"] * weights["prefireWeight"] * weights["pileupWeight"]
         totWeight *= weights["muonRecoSF"] * weights["muonIDSF"]
@@ -927,7 +942,10 @@ class PromptAnalyzer(TriLeptonBase):
             muonIDSF = self.myCorr.GetMuonIDSF("TopHNT", recoObjects["tightMuons"], var)
         else:
             muonIDSF = self.myCorr.GetMuonIDSF("TopHNT", recoObjects["tightMuons"])
-        eleRecoSF = self.myCorr.GetElectronRECOSF(recoObjects["tightElectrons"])
+        if "ElectronRecoSF" in syst:
+            eleRecoSF = self.myCorr.GetElectronRECOSF(recoObjects["tightElectrons"], var)
+        else:
+            eleRecoSF = self.myCorr.GetElectronRECOSF(recoObjects["tightElectrons"])
         if "ElectronIDSF" in syst:
             eleIDSF = self.myCorr.GetElectronIDSF("TopHNT", recoObjects["tightElectrons"], var)
         else:
@@ -1441,7 +1459,7 @@ class PromptAnalyzer(TriLeptonBase):
         systList = ["Central"]
         if not self.IsDATA and self.RunSyst:
             # Add weight-only systematics with _Up and _Down variations
-            for systName in self.systHelper.getWeightOnlySystematics():
+            for systName in self.getChannelWeightOnlySystematics():
                 systList.append(f"{systName}_Up")
                 systList.append(f"{systName}_Down")
 
